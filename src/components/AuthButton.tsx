@@ -109,7 +109,7 @@ import {
   signInWithGoogle,
   webAuthIn,
   signOutAction,
-} from '@/actions/auth-actions';
+} from '@/actions/auth/auth-actions';
 
 export function SignIn({ provider }: { provider?: string }) {
   // Wenn ein Provider über Props übergeben wird, kannst du alternativ ein hidden-Feld nutzen,
