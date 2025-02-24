@@ -4,10 +4,13 @@ import './globals.css';
 import { ThemeProvider } from 'next-themes';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
-import Navbar from '@/components/Navbar';
+// import Navbar from '@/components/Navbar';
 import { Inter } from 'next/font/google';
 import { Rubik } from 'next/font/google';
 import { Toaster } from '@/components/ui/sonner';
+import { Footer } from '@/components/layout/footer';
+import Navbar from '@/components/layout/Navbar';
+import CookieConsentComponent from '@/utils/cookies/CookieConsent';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -41,47 +44,18 @@ export default async function RootLayout({
       >
         <ThemeProvider
           attribute='class'
-          defaultTheme='system'
+          defaultTheme='dark'
           enableSystem={true}
           disableTransitionOnChange
         >
           <Navbar />
-          {children}
+          <main className='pt-[76px]'>{children}</main>
           <Toaster />
           <ThemeToggle />
+          <CookieConsentComponent />
+          <Footer />
         </ThemeProvider>
       </body>
     </html>
   );
 }
-
-// export default async function RootLayout({
-//   children,
-// }: Readonly<{ children: React.ReactNode }>) {
-//   return (
-//     <html lang='de' suppressHydrationWarning>
-//       <GoogleTag />
-//       <body
-//         className={cn(
-//           'mx-auto h-screen bg-neutral-100 dark:bg-neutral-900',
-//           inter.variable,
-//           rubik.variable,
-//         )}
-//       >
-//         <ThemeProvider
-//           attribute='class'
-//           defaultTheme='system'
-//           enableSystem={true}
-//           disableTransitionOnChange
-//         >
-//           <Navbar />
-//           <main className='pt-[76px]'>{children}</main>
-//           <Toaster />
-//           <CookieConsentComponent />
-//           <Footer />
-//           <ThemeToggle />
-//         </ThemeProvider>
-//       </body>
-//     </html>
-//   );
-// }

@@ -47,12 +47,8 @@ export default function PackageModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChangeAction}>
-      <DialogContent
-        // className={`max-w-2xl overflow-hidden border-gray-200 bg-white/95 dark:border-white/10 dark:bg-black/95 sm:max-h-[90vh] [&>button]:hidden`}>
-        className={`max-w-2xl overflow-hidden border-gray-200 bg-white/95 dark:border-white/10 dark:bg-black/95 sm:max-h-[90vh] [&>button]:hidden`}
-      >
-        {' '}
-        <div className='relative h-48 w-full sm:h-64 md:h-72'>
+      <DialogContent className='flex h-[80vh] max-w-2xl flex-col overflow-hidden border-gray-200 bg-white/95 dark:border-white/10 dark:bg-black/95 [&>button]:marker:top-0'>
+        <div className='relative h-64 w-full flex-shrink-0 sm:h-80 md:h-96'>
           <Image
             fill
             priority
@@ -64,7 +60,7 @@ export default function PackageModal({
             src={selectedPackage.detailImage}
           />
         </div>
-        <div className='max-h-[calc(90vh-12rem)] overflow-y-auto p-4 sm:p-6'>
+        <div className='flex-shrink-0 p-4 sm:p-6'>
           <DialogHeader>
             <DialogTitle className='text-2xl text-gray-900 dark:text-white'>
               {selectedPackage.title}
@@ -75,9 +71,12 @@ export default function PackageModal({
           <p className='mt-4 text-gray-600 dark:text-gray-300'>
             {selectedPackage.description}
           </p>
+        </div>
 
+        {/* Scrollable content section */}
+        <div className='flex-1 overflow-y-auto p-4 pt-0 sm:p-6 sm:pt-0'>
           {/* Service Points */}
-          <div className='mt-6 grid grid-cols-1 gap-4'>
+          <div className='grid grid-cols-1 gap-4'>
             {selectedPackage.bullets?.map((bullet: string, index: number) => (
               <div
                 className='rounded-lg border border-blue-500/10 bg-white/80 p-4 transition-all duration-300 hover:border-blue-500/30 dark:bg-white/5'
@@ -148,13 +147,12 @@ export default function PackageModal({
             <h4 className='mb-4 text-lg font-semibold text-gray-900 dark:text-white'>
               Zusätzliche Informationen
             </h4>
-            <div className='rounded-lg bg-yellow-50 p-4 text-yellow-800 dark:bg-yellow-500/10 dark:text-yellow-200'>
+            <div className='mb-4 rounded-lg bg-yellow-50 p-4 text-yellow-800 dark:bg-yellow-500/10 dark:text-yellow-200'>
               <p className='flex items-center gap-2 text-sm'>
                 <span>*</span>
                 Bei zu starker Verschmutzung wird eine zusätzliche Gebühr
                 erhoben.
               </p>
-              <p className='my-10'></p>
             </div>
           </div>
         </div>
