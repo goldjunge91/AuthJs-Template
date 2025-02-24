@@ -1,0 +1,205 @@
+{
+  "packages": [
+    {
+      "id": "aussenaufbereitung",
+      "title": "Außenaufbereitung",
+      "description": "Hochwertige Fahrzeugpflege für einen strahlenden ersten Eindruck. Professionelle Handwäsche und Detailpflege für langanhaltenden Glanz.",
+      "bullets": [
+        "schonende Handwäsche",
+        "gründliche Felgenreinigung",
+        "spezielle Fleckenbehandlung",
+        "hygienische Desinfektion",
+        "streifenfreie Scheibenreinigung",
+        "professionelle Trocknung & Finish"
+      ],
+      "duration": {
+        "kleinwagen": 90,
+        "mittelklasse": 120,
+        "suv": 150,
+        "transporter": 180
+      },
+      "price": {
+        "kleinwagen": "110€",
+        "mittelklasse": "130€",
+        "suv": "160€",
+        "transporter": "200€"
+      },
+      "cardImage": "/assets/packages/front.png",
+      "detailImage": "/assets/packages/ivan-kazlouskij-DW7ehnzt_IA-unsplash.jpg"
+    },
+    {
+      "id": "innenaufbereitung",
+      "title": "Innenaufbereitung",
+      "description": "Professionelle Tiefenreinigung des Fahrzeuginnenraums für ein hygienisches und angenehmes Fahrgefühl. Inklusive Spezialbehandlung aller Oberflächen.",
+      "bullets": [
+        "Staubsaugen",
+        "Armaturenreinigung",
+        "Fenster innen reinigen",
+        "vollständige Polsterreinigung",
+        "Teppichreinigung",
+        "Lederpflege",
+        "Oberflächenreinigung",
+        "Geruchsneutralisation / Desinfizierung"
+      ],
+      "duration": {
+        "kleinwagen": 120,
+        "mittelklasse": 150,
+        "suv": 180,
+        "transporter": 240
+      },
+      "price": {
+        "kleinwagen": "100€",
+        "mittelklasse": "120€",
+        "suv": "150€",
+        "transporter": "180€"
+      },
+      "cardImage": "/assets/packages/felge.png",
+      "detailImage": "/assets/packages/felge.png"
+    },
+    {
+      "id": "komplettaufbereitung",
+      "title": "Komplettaufbereitung",
+      "description": "Umfassende Pflege für höchste Ansprüche – ideal für besondere Anlässe oder den Werterhalt Ihres Fahrzeugs.",
+      "bullets": [
+        "Premium Innen- & Außenaufbereitung",
+        "Spezielle Tiefenreinigung",
+        "Professionelle Langzeit-Versiegelung"
+      ],
+      "duration": {
+        "kleinwagen": 180,
+        "mittelklasse": 240,
+        "suv": 300,
+        "transporter": 360
+      },
+      "price": {
+        "kleinwagen": "200€",
+        "mittelklasse": "250€",
+        "suv": "300€",
+        "transporter": "400€"
+      },
+      "cardImage": "/assets/packages/felge.png",
+      "detailImage": "/assets/packages/felge.png"
+    }
+  ],
+  "additionalOptions": [
+    {
+      "id": "lackversiegelung",
+      "title": "Lackversiegelung",
+      "duration": {
+        "kleinwagen": 60,
+        "mittelklasse": 75,
+        "suv": 90,
+        "transporter": 120
+      },
+      "price": {
+        "kleinwagen": "80€",
+        "mittelklasse": "100€",
+        "suv": "130€",
+        "transporter": "150€"
+      },
+      "package.id": ["aussenaufbereitung", "komplettaufbereitung"]
+    },
+    {
+      "id": "motorraumreinigung",
+      "title": "Motorraumreinigung",
+      "duration": {
+        "kleinwagen": 30,
+        "mittelklasse": 45,
+        "suv": 60,
+        "transporter": 75
+      },
+      "price": {
+        "kleinwagen": "40€",
+        "mittelklasse": "50€",
+        "suv": "65€",
+        "transporter": "80€"
+      },
+      "package.id": ["aussenaufbereitung", "komplettaufbereitung"]
+    },
+    {
+      "id": "felgenversiegelung",
+      "title": "Felgenversiegelung",
+      "duration": {
+        "kleinwagen": 30,
+        "mittelklasse": 40,
+        "suv": 50,
+        "transporter": 60
+      },
+      "price": {
+        "kleinwagen": "30€",
+        "mittelklasse": "40€",
+        "suv": "50€",
+        "transporter": "60€"
+      },
+      "package.id": ["aussenaufbereitung", "komplettaufbereitung"]
+    },
+    {
+      "id": "tierhaarentfernung",
+      "title": "Tierhaarentfernung",
+      "duration": {
+        "kleinwagen": 45,
+        "mittelklasse": 60,
+        "suv": 75,
+        "transporter": 90
+      },
+      "price": {
+        "kleinwagen": "30€",
+        "mittelklasse": "50€",
+        "suv": "75€",
+        "transporter": "100€"
+      },
+      "package.id": ["innenaufbereitung", "komplettaufbereitung"]
+    },
+    {
+      "id": "nanoversiegelung",
+      "title": "Nanoversiegelung (für Glasflächen)",
+      "duration": {
+        "kleinwagen": 45,
+        "mittelklasse": 60,
+        "suv": 75,
+        "transporter": 90
+      },
+      "price": {
+        "kleinwagen": "50€",
+        "mittelklasse": "65€",
+        "suv": "85€",
+        "transporter": "100€"
+      },
+      "package.id": ["aussenaufbereitung", "komplettaufbereitung"]
+    },
+    {
+      "id": "politur",
+      "title": "Politur",
+      "duration": {
+        "kleinwagen": 90,
+        "mittelklasse": 120,
+        "suv": 150,
+        "transporter": 180
+      },
+      "price": {
+        "kleinwagen": "100€",
+        "mittelklasse": "130€",
+        "suv": "160€",
+        "transporter": "200€"
+      },
+      "package.id": ["aussenaufbereitung", "komplettaufbereitung"]
+    },
+    {
+      "id": "kindersitzreinigung",
+      "title": "Kindersitzreinigung",
+      "duration": {
+        "kleinwagen": 30,
+        "mittelklasse": 45,
+        "suv": 60,
+        "transporter": 75
+      },
+      "price": {
+        "kleinwagen": "30€",
+        "mittelklasse": "40€",
+        "suv": "50€",
+        "transporter": "60€"
+      },
+      "package.id": ["innenaufbereitung", "komplettaufbereitung"]
+    }
+  ]
+}

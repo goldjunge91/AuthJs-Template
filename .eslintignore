@@ -1,3 +1,11 @@
+# Ignoriere JSON-Dateien
+*.json
+
+# Ignoriere Build-Verzeichnisse
+.next
+dist
+build
+data.json
 node_modules
 .vscode
 public
