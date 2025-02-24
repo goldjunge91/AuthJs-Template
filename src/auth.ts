@@ -58,7 +58,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           email: profile.email,
           image: profile.picture,
           username: profile.email,
-          role: profile.email.endsWith('@patelvivek.dev') ? 'ADMIN' : 'USER',
+          role: profile.email.endsWith('@tozzi-test.de') ? 'ADMIN' : 'USER',
         };
       },
       allowDangerousEmailAccountLinking: true,
@@ -71,7 +71,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           email: profile.email,
           image: profile.avatar_url,
           username: profile.login,
-          role: profile.email!.endsWith('@patelvivek.dev') ? 'ADMIN' : 'USER',
+          role: profile.email!.endsWith('@tozzi-test.de') ? 'ADMIN' : 'USER',
         };
       },
       allowDangerousEmailAccountLinking: true,

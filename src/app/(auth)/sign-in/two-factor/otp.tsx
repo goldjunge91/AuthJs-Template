@@ -97,7 +97,7 @@ export default function OtpForm({ userId }: { userId: string }) {
           <p className='text-muted-foreground'>
             Having problem accessing your account?{' '}
             <Link
-              href='mailto: admin@patelvivek.dev'
+              href='mailto: admin@tozzi-test.de'
               className='underline'
               prefetch={false}
             >

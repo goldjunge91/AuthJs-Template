@@ -21,6 +21,7 @@
     "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
+    "@auth/core": "^0.37.4",
     "@auth/drizzle-adapter": "^1.7.4",
     "@epic-web/totp": "^2.0.0",
     "@libsql/client": "^0.14.0",
