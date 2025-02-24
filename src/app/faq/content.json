@@ -1,0 +1,54 @@
+{
+  "pageTitle": "Häufig gestellte Fragen zur Autoreinigung",
+  "pageDescription": "Professionelle Antworten auf Ihre Fragen rund um Fahrzeugpflege, Reinigung und Wartung",
+  "faqItems": [
+    {
+      "id": "basic-cleaning",
+      "question": "Wie oft sollte ich mein Auto waschen?",
+      "answer": "Es wird empfohlen, Ihr Auto alle 2-3 Wochen zu waschen. Bei starker Verschmutzung oder nach Kontakt mit aggressiven Substanzen (z.B. Streusalz) sollten Sie jedoch früher waschen. Regelmäßiges Waschen schützt den Lack und erhält den Wert Ihres Fahrzeugs.",
+      "icon": "droplet"
+    },
+    {
+      "id": "polish-wax",
+      "question": "Was ist der Unterschied zwischen Polieren und Wachsen?",
+      "answer": "Polieren entfernt feine Kratzer und Oxidation aus dem Lack durch abrasive Wirkung. Wachsen hingegen schützt den Lack und verleiht ihm Glanz, indem eine Schutzschicht aufgetragen wird. Idealerweise wird erst poliert und dann gewachst. Die Politur sollte 2-3 mal im Jahr erfolgen, während Wachs alle 2-3 Monate erneuert werden sollte.",
+      "icon": "sparkles"
+    },
+    {
+      "id": "interior-care",
+      "question": "Wie pflege ich den Innenraum richtig?",
+      "answer": "Die Grundreinigung sollte monatlich erfolgen: Staubsaugen, Oberflächen reinigen, Fenster putzen. Leder benötigt spezielle Pflege alle 3-4 Monate. Wichtig ist regelmäßiges Lüften und sofortiges Entfernen von Flecken. Verwenden Sie geeignete Reinigungsmittel für verschiedene Materialien wie Leder, Textil oder Kunststoff.",
+      "icon": "armchair"
+    },
+    {
+      "id": "wheel-care",
+      "question": "Wie reinige ich die Felgen fachgerecht?",
+      "answer": "Verwenden Sie einen pH-neutralen Felgenreiniger und spezielle Felgenbürsten. Sprühen Sie den Reiniger auf kalte Felgen, lassen Sie ihn 3-5 Minuten einwirken und spülen Sie gründlich ab. Behandeln Sie hartnäckige Verschmutzungen wie Bremsstaub sofort, um Schäden zu vermeiden. Eine Felgenversiegelung erleichtert künftige Reinigungen.",
+      "icon": "disc"
+    },
+    {
+      "id": "paint-protection",
+      "question": "Welche Lackschutzmaßnahmen sind empfehlenswert?",
+      "answer": "Für langanhaltenden Lackschutz empfehlen wir: 1. Regelmäßige Handwäsche mit pH-neutralem Shampoo 2. Vierteljährliche Politur bei Bedarf 3. Regelmäßiges Wachsen oder Versiegeln 4. Keramikbeschichtung für maximalen Schutz 5. Parken in der Garage oder unter Carports wenn möglich.",
+      "icon": "shield"
+    },
+    {
+      "id": "seasonal-care",
+      "question": "Wie bereite ich mein Auto auf die verschiedenen Jahreszeiten vor?",
+      "answer": "Frühling: Gründliche Reinigung nach Winterschäden, Unterbodenwäsche. Sommer: UV-Schutz durch Wachs/Versiegelung, regelmäßige Insektenentfernung. Herbst: Hohlraumversiegelung, Gummipflege. Winter: Unterbodenschutz, häufigeres Waschen wegen Streusalz, Türgummis mit Glycerin behandeln.",
+      "icon": "calendar"
+    },
+    {
+      "id": "leather-care",
+      "question": "Wie pflege ich Autoleder richtig?",
+      "answer": "Leder benötigt regelmäßige Pflege: 1. Monatliche Reinigung mit speziellen Lederreinigern 2. Vierteljährliche Lederpflege mit Conditioner 3. Sofortige Behandlung von Flecken 4. UV-Schutz durch Pflegemittel 5. Vermeidung von direkter Sonneneinstrahlung durch Parkplatzwahl oder Sonnenschutz.",
+      "icon": "sofa"
+    },
+    {
+      "id": "ceramic-coating",
+      "question": "Was sind die Vorteile einer Keramikversiegelung?",
+      "answer": "Keramikversiegelung bietet: 1. Langanhaltenden Lackschutz (3-5 Jahre) 2. Extreme Wasserabweisung (Easy-to-Clean-Effekt) 3. Erhöhte Kratzresistenz 4. Brillanten Tiefenglanz 5. UV-Schutz 6. Chemikalienresistenz. Die professionelle Applikation ist zwar kostenintensiv, aber eine langfristig lohnende Investition.",
+      "icon": "layers"
+    }
+  ]
+}

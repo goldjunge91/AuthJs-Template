@@ -33,6 +33,8 @@ class OauthError extends AuthError {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  debug: process.env.NODE_ENV !== 'production',
+  trustHost: true,
   experimental: { enableWebAuthn: true },
   adapter: DrizzleAdapter(db, {
     usersTable: users,

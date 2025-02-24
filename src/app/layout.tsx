@@ -54,3 +54,34 @@ export default async function RootLayout({
     </html>
   );
 }
+
+// export default async function RootLayout({
+//   children,
+// }: Readonly<{ children: React.ReactNode }>) {
+//   return (
+//     <html lang='de' suppressHydrationWarning>
+//       <GoogleTag />
+//       <body
+//         className={cn(
+//           'mx-auto h-screen bg-neutral-100 dark:bg-neutral-900',
+//           inter.variable,
+//           rubik.variable,
+//         )}
+//       >
+//         <ThemeProvider
+//           attribute='class'
+//           defaultTheme='system'
+//           enableSystem={true}
+//           disableTransitionOnChange
+//         >
+//           <Navbar />
+//           <main className='pt-[76px]'>{children}</main>
+//           <Toaster />
+//           <CookieConsentComponent />
+//           <Footer />
+//           <ThemeToggle />
+//         </ThemeProvider>
+//       </body>
+//     </html>
+//   );
+// }

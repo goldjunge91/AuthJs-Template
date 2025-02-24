@@ -9,6 +9,8 @@ export const publicRoutes = [
   '/settings',
   '/login',
   '/register',
+  '/sign-in',
+  '/sign-up',
   '/reset-password',
   '/new-password',
   '/loginerror',
