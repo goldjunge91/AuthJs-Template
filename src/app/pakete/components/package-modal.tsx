@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Info } from 'lucide-react';
 import Image from 'next/image';
 
@@ -36,7 +37,8 @@ export default function PackageModal({
   onOpenChangeAction,
   selectedPackage,
 }: PackageModalProps) {
-  // Helper function to get all additional options for modal
+  const [imgLoading, setImgLoading] = useState(true);
+
   const getAllOptionsForPackage = (packageId: string) => {
     return typedData.additionalOptions.filter((option) =>
       option['package.id'].includes(packageId),
@@ -47,15 +49,19 @@ export default function PackageModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChangeAction}>
-      <DialogContent className='flex h-[80vh] max-w-2xl flex-col overflow-hidden border-gray-200 bg-white/95 dark:border-white/10 dark:bg-black/95 [&>button]:marker:top-0'>
-        <div className='relative h-64 w-full flex-shrink-0 sm:h-80 md:h-96'>
+      <DialogContent className='flex max-h-[90vh] w-full flex-col overflow-hidden border-gray-200 bg-white/95 dark:border-white/10 dark:bg-black/95 sm:max-w-2xl [&>button]:hidden'>
+        <div className='relative h-56 w-full flex-shrink-0 sm:h-72 md:h-80'>
+          {imgLoading && (
+            <div className='absolute inset-0 animate-pulse bg-gray-200 dark:bg-gray-700' />
+          )}
           <Image
             fill
             priority
             alt={selectedPackage.title}
-            blurDataURL='data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=='
-            className='rounded-t-lg object-cover'
-            placeholder='blur'
+            className={`rounded-t-lg object-cover transition-opacity duration-500 ${
+              imgLoading ? 'opacity-0' : 'opacity-100'
+            }`}
+            onLoadingComplete={() => setImgLoading(false)}
             sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
             src={selectedPackage.detailImage}
           />
@@ -66,16 +72,11 @@ export default function PackageModal({
               {selectedPackage.title}
             </DialogTitle>
           </DialogHeader>
-
-          {/* Description */}
           <p className='mt-4 text-gray-600 dark:text-gray-300'>
             {selectedPackage.description}
           </p>
         </div>
-
-        {/* Scrollable content section */}
         <div className='flex-1 overflow-y-auto p-4 pt-0 sm:p-6 sm:pt-0'>
-          {/* Service Points */}
           <div className='grid grid-cols-1 gap-4'>
             {selectedPackage.bullets?.map((bullet: string, index: number) => (
               <div
@@ -102,8 +103,6 @@ export default function PackageModal({
               </div>
             ))}
           </div>
-
-          {/* Additional Options */}
           <div className='mt-8'>
             <h4 className='mb-4 text-lg font-semibold text-gray-900 dark:text-white'>
               Zusätzliche Optionen
@@ -119,8 +118,7 @@ export default function PackageModal({
                       <div>
                         <h5 className='font-medium'>{option.title}</h5>
                         <p className='text-sm text-gray-500'>
-                          Ab
-                          {option.price.kleinwagen}
+                          Ab {option.price.kleinwagen}
                         </p>
                       </div>
                       <TooltipProvider>
@@ -141,13 +139,11 @@ export default function PackageModal({
               )}
             </div>
           </div>
-
-          {/* Additional Information Section */}
           <div className='mt-8'>
             <h4 className='mb-4 text-lg font-semibold text-gray-900 dark:text-white'>
               Zusätzliche Informationen
             </h4>
-            <div className='mb-4 rounded-lg bg-yellow-50 p-4 text-yellow-800 dark:bg-yellow-500/10 dark:text-yellow-200'>
+            <div className='mb-20 rounded-lg bg-yellow-50 p-4 text-yellow-800 dark:bg-yellow-500/10 dark:text-yellow-200 sm:mb-40'>
               <p className='flex items-center gap-2 text-sm'>
                 <span>*</span>
                 Bei zu starker Verschmutzung wird eine zusätzliche Gebühr
