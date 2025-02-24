@@ -1,13 +1,13 @@
 'use client';
 
 import { Clock, Mail, MapPin, Phone } from 'lucide-react';
-
 import ContactForm from './contact-form';
 
 export default function Kontakt() {
   return (
-    <div className='bg-gray-50 py-20 dark:bg-gray-900'>
-      <div className='mx-auto max-w-7xl px-4'>
+    // Verwende min-h-[80vh] statt min-h-screen und mache den Container zu einem flex-Container, der den Inhalt vertikal zentriert.
+    <div className='flex min-h-[80vh] items-center bg-gray-50 dark:bg-gray-900'>
+      <div className='mx-auto max-w-7xl px-4 py-8'>
         <div className='grid grid-cols-1 gap-12 lg:grid-cols-2'>
           <div>
             <h1 className='mb-4 text-4xl font-bold dark:text-white'>
