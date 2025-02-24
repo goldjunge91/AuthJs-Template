@@ -63,6 +63,7 @@
     "clsx": "^2.1.1",
     "cmdk": "1.0.0",
     "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.38.0",
     "embla-carousel-react": "^8.5.2",
@@ -92,7 +93,8 @@
     "tailwindcss-animate": "^1.0.7",
     "vanilla-cookieconsent": "^3.1.0",
     "vaul": "^1.1.2",
-    "zod": "^3.24.2"
+    "zod": "^3.24.2",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
