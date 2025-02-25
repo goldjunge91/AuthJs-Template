@@ -30,6 +30,7 @@ interface BookingActions {
   setDuration: (minutes: number) => void;
 
   calculateTotalDuration: () => void;
+  calculatePrice: () => void;
 
   validateBooking: () => boolean;
   reset: () => void;
@@ -53,15 +54,18 @@ export const useBookingStore = create<BookingStore>()((set, get) => ({
   setVehicleClass: (vehicleClass: VehicleClass) => {
     set(() => ({ vehicleClass }));
     get().calculateTotalDuration();
+    get().calculatePrice();
   },
   setSelectedPackage: (packageId: string) => {
     set(() => ({ selectedPackage: packageId }));
     get().calculateTotalDuration();
+    get().calculatePrice();
   },
   setAdditionalOptions: (options: string[]) => {
     set(() => ({ additionalOptions: options }));
     // Berechne die Gesamtdauer nach Aktualisierung der zusätzlichen Optionen
     get().calculateTotalDuration();
+    get().calculatePrice();
   },
   setDateTime: (dateTime: string) => set(() => ({ dateTime })),
   setCustomerDetails: (details: CustomerDetails) =>
@@ -86,9 +90,80 @@ export const useBookingStore = create<BookingStore>()((set, get) => ({
     set(() => ({ duration: totalDuration }));
   },
 
+  calculatePrice: () => {
+    const state = get();
+    if (!state.vehicleClass || !state.selectedPackage) return;
+
+    // Find the selected package
+    const selectedPkg = packages.find(
+      (pkg) => pkg.id === state.selectedPackage,
+    );
+
+    // Parse the package price (remove currency symbol and convert to number)
+    const packagePrice = selectedPkg
+      ? parseFloat(
+          selectedPkg.price[state.vehicleClass]
+            .replace(/[^0-9,]/g, '')
+            .replace(',', '.'),
+        )
+      : 0;
+
+    // Calculate additional options price
+    let additionalOptionsPrice = 0;
+    state.additionalOptions.forEach((optionId) => {
+      const option = additionalOptions.find((opt) => opt.id === optionId);
+      if (option) {
+        // Parse the option price (remove currency symbol and convert to number)
+        const optionPrice = parseFloat(
+          option.price[state.vehicleClass!]
+            .replace(/[^0-9,]/g, '')
+            .replace(',', '.'),
+        );
+        additionalOptionsPrice += optionPrice;
+      }
+    });
+
+    // Calculate total price
+    const totalPrice = packagePrice + additionalOptionsPrice;
+
+    // Update state with calculated prices
+    set(() => ({
+      calculatedPrice: {
+        packagePrice,
+        additionalOptionsPrice,
+        totalPrice,
+      },
+    }));
+  },
+
   validateBooking: () => {
-    set(() => ({ isValid: true, validationErrors: [] }));
-    return true;
+    const state = get();
+    const errors: string[] = [];
+
+    if (!state.vehicleClass) {
+      errors.push('Bitte wählen Sie ein Fahrzeug aus.');
+    }
+
+    if (!state.selectedPackage) {
+      errors.push('Bitte wählen Sie ein Servicepaket aus.');
+    }
+
+    if (!state.dateTime) {
+      errors.push('Bitte wählen Sie einen Termin aus.');
+    }
+
+    if (!state.customerDetails) {
+      errors.push('Bitte geben Sie Ihre Kontaktdaten ein.');
+    } else {
+      const { firstName, lastName, email, phone } = state.customerDetails;
+      if (!firstName || !lastName || !email || !phone) {
+        errors.push('Bitte füllen Sie alle Pflichtfelder aus.');
+      }
+    }
+
+    const isValid = errors.length === 0;
+    set(() => ({ isValid, validationErrors: errors }));
+    return isValid;
   },
 
   reset: () => set(initialState),

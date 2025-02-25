@@ -34,6 +34,7 @@ export function BookingOverview() {
     dateTime,
     customerDetails,
     calculatedPrice,
+    duration,
     reset,
   } = useBookingStore();
 
@@ -49,19 +50,52 @@ export function BookingOverview() {
       return;
     }
 
+    if (
+      !vehicleClass ||
+      !selectedPackage ||
+      !dateTime ||
+      !customerDetails ||
+      !calculatedPrice
+    ) {
+      toast.error('Bitte füllen Sie alle erforderlichen Felder aus');
+      return;
+    }
+
     try {
       setIsLoading(true);
 
-      // API Call würde hier erfolgen
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Sende Buchungsdaten an die API
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          vehicleClass,
+          selectedPackage,
+          additionalOptions: selectedOptions,
+          dateTime,
+          customerDetails,
+          calculatedPrice,
+          duration,
+        }),
+      });
 
-      toast.success('Buchung erfolgreich!');
-      reset();
-      router.push('/booking/success');
+      if (!response.ok) {
+        throw new Error('Fehler bei der Erstellung der Checkout-Session');
+      }
+
+      const { url } = await response.json();
+
+      // Weiterleitung zur Stripe Checkout Seite
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error('Keine Checkout-URL erhalten');
+      }
     } catch (error) {
       console.error('Buchungsfehler:', error);
       toast.error('Ein Fehler ist aufgetreten');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -250,8 +284,8 @@ export function BookingOverview() {
                   <h3 className='text-lg font-semibold'>Gesamtbetrag</h3>
                 </div>
                 <div className='text-right'>
-                  <p className='text-3xl font-bold text-primary'>
-                    {calculatedPrice.totalPrice}€
+                  <p className='text-2xl font-bold'>
+                    {calculatedPrice.totalPrice.toFixed(2).replace('.', ',')} €
                   </p>
                   <p className='text-sm text-muted-foreground'>inkl. MwSt.</p>
                 </div>
@@ -259,31 +293,49 @@ export function BookingOverview() {
 
               <Separator />
 
-              <div className='space-y-4'>
+              <div className='space-y-2'>
+                <div className='flex justify-between'>
+                  <span className='text-muted-foreground'>Servicepaket</span>
+                  <span className='font-medium'>
+                    {calculatedPrice.packagePrice.toFixed(2).replace('.', ',')}{' '}
+                    €
+                  </span>
+                </div>
+                {calculatedPrice.additionalOptionsPrice > 0 && (
+                  <div className='flex justify-between'>
+                    <span className='text-muted-foreground'>
+                      Zusatzoptionen
+                    </span>
+                    <span className='font-medium'>
+                      {calculatedPrice.additionalOptionsPrice
+                        .toFixed(2)
+                        .replace('.', ',')}{' '}
+                      €
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className='flex flex-col gap-4'>
                 <Button
-                  onClick={handleBooking}
-                  disabled={!legalAccepted || isLoading}
-                  className='w-full'
                   size='lg'
+                  onClick={handleBooking}
+                  disabled={isLoading || !legalAccepted}
+                  className='w-full'
                 >
                   {isLoading
-                    ? 'Wird verarbeitet...'
+                    ? 'Wird bearbeitet...'
                     : 'Jetzt kostenpflichtig buchen'}
                 </Button>
-
                 <Button
-                  onClick={handleCancel}
                   variant='outline'
-                  className='w-full'
                   size='lg'
+                  onClick={handleCancel}
+                  disabled={isLoading}
+                  className='w-full'
                 >
-                  Buchung abbrechen
+                  Abbrechen
                 </Button>
-
-                <p className='text-center text-sm text-muted-foreground'>
-                  Mit Klick auf &ldquo;Jetzt kostenpflichtig buchen&quot; werden
-                  Sie zur sicheren Bezahlung weitergeleitet.
-                </p>
               </div>
             </div>
           </CardContent>

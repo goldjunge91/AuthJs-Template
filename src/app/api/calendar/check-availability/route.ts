@@ -1,99 +1,52 @@
-import { checkTimeSlotAvailability } from '@/actions/booking/check-time-slot-availability';
 import { NextResponse } from 'next/server';
-import { getAvailableTimeSlotsForDay } from '@/actions/booking/calendar-actions';
-import { parseISO } from 'date-fns';
+import { checkTimeSlotAvailability } from '@/actions/booking/check-time-slot-availability';
 
 export async function GET(request: Request) {
-  console.log('🔍 API: /api/calendar/check-availability wurde aufgerufen');
-  const { searchParams } = new URL(request.url);
-  const dateParam = searchParams.get('date');
-  const start = searchParams.get('start');
-  const end = searchParams.get('end');
+  try {
+    const { searchParams } = new URL(request.url);
+    const startParam = searchParams.get('start');
+    const endParam = searchParams.get('end');
 
-  console.log('📅 Parameter:', { dateParam, start, end });
-
-  // Wenn date Parameter vorhanden ist, verwende die Server Action für verfügbare Zeitslots
-  if (dateParam) {
-    try {
-      console.log(`🔄 Verarbeite Anfrage für Datum: ${dateParam}`);
-      const date = parseISO(dateParam);
-      console.log(`📆 Geparste Datum: ${date.toISOString()}`);
-
-      console.log('🔍 Rufe getAvailableTimeSlotsForDay auf...');
-      const availableTimeSlots = await getAvailableTimeSlotsForDay(date);
-      console.log(
-        `✅ Verfügbare Zeitslots erhalten: ${JSON.stringify(availableTimeSlots)}`,
-      );
-
-      // Formatiere die Zeitslots für die Antwort
-      const formattedSlots = availableTimeSlots.map((timeStr) => {
-        const [hours, minutes] = timeStr.split(':').map(Number);
-        const slotDate = new Date(date);
-        slotDate.setHours(hours, minutes, 0, 0);
-
-        return {
-          time: timeStr,
-          dateTime: slotDate.toISOString(),
-          isAvailable: true,
-        };
-      });
-
-      console.log(`🔢 Formatierte Slots: ${formattedSlots.length}`);
-      console.log(
-        `📤 Sende Antwort mit ${formattedSlots.length} verfügbaren Slots`,
-      );
-
-      return NextResponse.json({
-        success: true,
-        availableSlots: formattedSlots,
-      });
-    } catch (error) {
-      console.error('❌ Fehler bei der Verfügbarkeitsprüfung:', error);
+    if (!startParam || !endParam) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Fehler bei der Verfügbarkeitsprüfung',
-        },
-        { status: 500 },
+        { error: 'Start- und Endzeit müssen angegeben werden' },
+        { status: 400 },
       );
     }
-  }
 
-  // Fallback zur direkten Verfügbarkeitsprüfung mit Start- und Endzeit
-  if (!start || !end) {
-    console.error(
-      '❌ Fehlende Parameter: start und end müssen angegeben werden',
-    );
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Start- und Endzeit müssen angegeben werden',
-      },
-      { status: 400 },
-    );
-  }
+    const startTime = new Date(startParam);
+    const endTime = new Date(endParam);
 
-  try {
-    console.log(`🔄 Prüfe Verfügbarkeit für Zeitraum: ${start} bis ${end}`);
-    const isAvailable = await checkTimeSlotAvailability(
-      new Date(start),
-      new Date(end),
-    );
+    if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+      return NextResponse.json(
+        { error: 'Ungültiges Datumsformat' },
+        { status: 400 },
+      );
+    }
 
-    console.log(
-      `✅ Verfügbarkeitsprüfung abgeschlossen: ${isAvailable ? 'Verfügbar' : 'Nicht verfügbar'}`,
-    );
-
-    return NextResponse.json({
-      success: true,
-      isAvailable,
+    console.log('API Route: Prüfe Verfügbarkeit für:', {
+      start: startTime.toISOString(),
+      end: endTime.toISOString(),
     });
+
+    try {
+      const isAvailable = await checkTimeSlotAvailability(startTime, endTime);
+      console.log('API Route: Verfügbarkeitsresultat:', isAvailable);
+      return NextResponse.json({ isAvailable });
+    } catch (calendarError) {
+      console.error(
+        'API Route: Fehler bei der Verfügbarkeitsprüfung:',
+        calendarError,
+      );
+      // Im Fehlerfall ist der Slot nicht verfügbar
+      return NextResponse.json({ isAvailable: false });
+    }
   } catch (error) {
-    console.error('❌ Fehler bei der Verfügbarkeitsprüfung:', error);
+    console.error('Genereller Fehler bei der Zeitslot-Prüfung:', error);
     return NextResponse.json(
       {
-        success: false,
         error: 'Fehler bei der Verfügbarkeitsprüfung',
+        isAvailable: false,
       },
       { status: 500 },
     );

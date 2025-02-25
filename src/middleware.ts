@@ -1,4 +1,3 @@
-// export { auth as middleware } from './auth';
 import { NextResponse, NextRequest } from 'next/server';
 import { auth } from './auth';
 import {
@@ -8,9 +7,21 @@ import {
   apiAuthPrefix,
 } from './routes';
 
+const PUBLIC_FILE = /\.(.*)$/;
+
 export default async function middleware(request: NextRequest) {
   const { nextUrl } = request;
   const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
+  const { pathname } = nextUrl;
+
+  // Allow public files, videos, and images
+  if (
+    PUBLIC_FILE.test(pathname) ||
+    pathname.startsWith('/videos') ||
+    pathname.startsWith('/images')
+  ) {
+    return NextResponse.next();
+  }
 
   // Check if the requested path starts with API auth prefix
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
@@ -29,7 +40,6 @@ export default async function middleware(request: NextRequest) {
     if (isLoggedIn) {
       return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
     }
-
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set('request-ip', ip);
     return NextResponse.next({

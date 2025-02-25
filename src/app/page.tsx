@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { AnimatedCity } from './_components-landingpage/animated-city';
 import { HeroSection } from './_components-landingpage/hero-section';
+import { VideoPlayer } from './_components-landingpage/video-player';
 import { ClipLoader } from 'react-spinners';
 
 export default function Page() {
@@ -27,6 +28,19 @@ export default function Page() {
           }
         >
           <HeroSection />
+        </Suspense>
+      </div>
+
+      <div className='relative'>
+        <Suspense
+          fallback={
+            <div className='flex min-h-[200px] items-center justify-center'>
+              {' '}
+              <ClipLoader color='#2563eb' size={50} />
+            </div>
+          }
+        >
+          <VideoPlayer />
         </Suspense>
       </div>
     </main>

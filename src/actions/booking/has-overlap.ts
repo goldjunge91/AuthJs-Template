@@ -243,6 +243,23 @@ export function hasOverlap(
 }
 
 /**
+ * Überprüft, ob zwei Zeitbereiche überlappen (verbesserte Version mit Zeitzonenunterstützung)
+ */
+export function hasOverlapV2(
+  startA: string | Date,
+  endA: string | Date,
+  startB: string | Date,
+  endB: string | Date,
+): boolean {
+  const startTimeA = new Date(startA).getTime();
+  const endTimeA = new Date(endA).getTime();
+  const startTimeB = new Date(startB).getTime();
+  const endTimeB = new Date(endB).getTime();
+
+  return startTimeA < endTimeB && endTimeA > startTimeB;
+}
+
+/**
  * Prüft, ob ein Zeitslot mit einem der angegebenen Events überlappt
  * @param slotStart - Startzeit des zu prüfenden Zeitslots
  * @param slotEnd - Endzeit des zu prüfenden Zeitslots

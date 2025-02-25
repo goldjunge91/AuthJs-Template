@@ -1,40 +1,34 @@
-import { NextResponse } from 'next/server';
-import Stripe from 'stripe';
+import { NextRequest, NextResponse } from 'next/server';
+import { stripe } from '@/lib/stripe';
+import { headers } from 'next/headers';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-01-27.acacia',
-});
+export async function GET(request: NextRequest) {
+  const headersList = await headers();
+  const apiKey = headersList.get('x-api-key');
 
-export async function GET(request: Request) {
+  // Booking ID aus der URL oder den Query-Parametern holen
   const { searchParams } = new URL(request.url);
-  const sessionId = searchParams.get('session_id');
+  const bookingId = searchParams.get('bookingId');
 
-  if (!sessionId) {
-    return NextResponse.json({ error: 'Session ID fehlt' }, { status: 400 });
+  // API-Schlüssel validieren
+  if (apiKey !== process.env.API_SECRET_KEY) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  if (!bookingId) {
+    return NextResponse.json(
+      { error: 'Booking ID is required' },
+      { status: 400 },
+    );
   }
 
   try {
-    const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['line_items'],
-    });
-
-    if (!session.metadata) {
-      throw new Error('Keine Metadaten in der Session gefunden');
-    }
-
-    const bookingData = {
-      dateTime: session.metadata.dateTime,
-      totalDuration: Number.parseInt(session.metadata.totalDuration),
-      vehicleClass: session.metadata.vehicleClass,
-      contactDetails: JSON.parse(session.metadata.contactDetails),
-      packages: JSON.parse(session.metadata.packages),
-    };
-
-    return NextResponse.json(bookingData);
-  } catch (error) {
-    console.error('Fehler beim Abrufen der Buchungsdaten:', error);
+    // Buchungsinformationen von Stripe abrufen
+    const session = await stripe.checkout.sessions.retrieve(bookingId);
+    return NextResponse.json({ success: true, session }, { status: 200 });
+  } catch (error: any) {
     return NextResponse.json(
-      { error: 'Fehler beim Abrufen der Buchungsdaten' },
+      { error: error.message || 'Error retrieving booking' },
       { status: 500 },
     );
   }

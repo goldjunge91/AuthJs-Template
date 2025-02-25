@@ -1,4 +1,5 @@
-import CookieConsent from 'vanilla-cookieconsent';
+// Import namespaced oder verwende spezifische Importe
+import * as CookieConsentLib from 'vanilla-cookieconsent';
 
 export function formatAmountForDisplay(
   amount: number,
@@ -40,25 +41,35 @@ export function formatAmountForStripe(
  * getCookie() and getUserPreferences() methods.
  */
 export function logConsent(): void {
-  // Retrieve all the fields
-  const cookie = CookieConsent.getCookie();
-  const preferences = CookieConsent.getUserPreferences();
+  // Sicherheitscheck für Browser-Umgebung
+  if (typeof window === 'undefined') return;
 
-  // Save only the selected fields
-  const userConsent = {
-    consentId: cookie.consentId,
-    acceptType: preferences.acceptType,
-    acceptedCategories: preferences.acceptedCategories,
-    rejectedCategories: preferences.rejectedCategories,
-  };
+  try {
+    // Verwende das globale Objekt, das von der Bibliothek bereitgestellt wird
+    // @ts-ignore - Falls TypeScript Probleme mit dem globalen Objekt hat
+    const cookieConsent = window.CookieConsent || CookieConsentLib;
 
-  // Send the data to your backend.
-  // Replace '/api/cookie' with your API endpoint.
-  fetch('/api/cookie', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(userConsent),
-  });
+    // Retrieve all the fields
+    const cookie = cookieConsent.getCookie();
+    const preferences = cookieConsent.getUserPreferences();
+
+    // Save only the selected fields
+    const userConsent = {
+      consentId: cookie?.consentId,
+      acceptType: preferences?.acceptType,
+      acceptedCategories: preferences?.acceptedCategories,
+      rejectedCategories: preferences?.rejectedCategories,
+    };
+
+    // Send the data to your backend.
+    fetch('/api/cookie', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userConsent),
+    });
+  } catch (error) {
+    console.error('Error logging consent:', error);
+  }
 }

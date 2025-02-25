@@ -134,7 +134,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return true;
         }
       }
-
       // check if account is already linked or not after user is authenticated
       if (sessionToken?.value) {
         if (account) {
@@ -147,7 +146,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return '/sign-in/?error=OAuthAccountNotLinked';
         }
       }
-
       // @ts-ignore
       if (user.isTotpEnabled) {
         const cookieStore = await cookies();
@@ -206,8 +204,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
   },
-  session: { strategy: 'jwt' },
-  jwt: { encode, decode },
+  session: { strategy: 'jwt', maxAge: 0 * 24 * 60 * 60 }, // ? tage * stunden * minuten * sekunden
+  jwt: { encode, decode, maxAge: 0 * 24 * 60 * 60 },
   secret: process.env.AUTH_SECRET,
   pages: {
     signIn: '/sign-in',

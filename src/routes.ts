@@ -15,8 +15,6 @@ export const publicRoutes = [
   '/new-password',
   '/loginerror',
   '/login/magic-link',
-  '/admin-example',
-  '/admin',
   '/settings',
   '/client',
   '/server',
@@ -25,6 +23,7 @@ export const publicRoutes = [
   '/settings',
   '/api/calendar/check-availability',
   '/api/calendar/(.*)',
+  '/public/(.*)',
 ];
 
 /**
