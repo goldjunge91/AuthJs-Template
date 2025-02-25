@@ -1,4 +1,4 @@
-import { getGoogleCalendar } from '../../utils/google/get-google-calendar';
+import { getGoogleCalendar } from '@/utils/google/google-calendar';
 import { BookingState } from '../../app/booking/_lib/_types/index';
 
 export async function createCalendarEvent(booking: BookingState) {
@@ -43,7 +43,7 @@ Zusatzoptionen: ${booking.selectedOptions.join(', ')}
 
     console.log('Kalendereintrag erfolgreich erstellt:', response.data);
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Fehler beim Erstellen des Kalendereintrags:', error);
     throw error;
   }

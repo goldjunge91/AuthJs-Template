@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { BookingState } from '../../../booking/_lib/_store/state-store';
 import { getAvailableTimeSlots } from '../../../../actions/booking/availability-utils';
 import { toUTC } from '@/actions/booking/time-utils';
-import { getGoogleCalendar } from '../../../../utils/google/get-google-calendar';
+import { getGoogleCalendar } from '@/utils/google/google-calendar';
 
 const CALENDAR_ID = process.env.AUTH_CALENDAR_ID;
 const PRIVATE_KEY = process.env.AUTH_PRIVATE_KEY?.replace(/\\n/g, '\n');

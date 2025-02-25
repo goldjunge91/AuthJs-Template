@@ -1,145 +1,105 @@
-import { cache } from '../../utils/redis/redis-cache-component';
-import { getGoogleCalendar } from '../../utils/google/get-google-calendar';
 import { hasOverlap } from './has-overlap';
-import { addDays } from 'date-fns';
-import { toUTC, toLocalTime } from './time-utils';
-import {
-  getAvailableTimeSlots,
-  TimeSlot,
-  CalendarEvent,
-  groupSlotsByDate,
-} from './availability-utils';
+import { cache } from '@/utils/redis/cache';
+import { getGoogleCalendar } from '@/utils/google/google-calendar';
 
 export async function checkTimeSlotAvailability(
   startTime: Date,
   endTime: Date,
 ) {
-  console.log('Prüfe Verfügbarkeit für:', { startTime, endTime });
+  console.log('🔍 checkTimeSlotAvailability: Prüfe Verfügbarkeit für:', {
+    startTime: startTime.toISOString(),
+    endTime: endTime.toISOString(),
+  });
   const cacheKey = `calendar:availability:${startTime.toISOString()}`;
 
-  return await cache(
+  return cache(
     cacheKey,
     async () => {
       try {
+        console.log('🔄 Initialisiere Google Calendar Client...');
         const calendar = await getGoogleCalendar();
+        console.log('✅ Google Calendar Client erfolgreich initialisiert');
 
         const dayStart = new Date(startTime);
         dayStart.setHours(0, 0, 0, 0);
         const dayEnd = new Date(startTime);
         dayEnd.setHours(23, 59, 59, 999);
 
-        console.log('Hole Termine für:', { dayStart, dayEnd });
+        console.log('📅 Hole Termine für:', {
+          dayStart: dayStart.toISOString(),
+          dayEnd: dayEnd.toISOString(),
+          calendarId: process.env.GOOGLE_CALENDAR_ID || 'primary',
+        });
+
         const response = await calendar.events.list({
-          calendarId: process.env.AUTH_CALENDAR_ID,
+          calendarId: process.env.GOOGLE_CALENDAR_ID,
           timeMin: dayStart.toISOString(),
           timeMax: dayEnd.toISOString(),
           singleEvents: true,
         });
 
         const events = response.data.items || [];
-        console.log('Gefundene Events:', events.length);
+        console.log(`✅ Gefundene Events: ${events.length}`);
 
+        if (events.length > 0) {
+          console.log('📋 Erste 3 Events (oder weniger):');
+          events.slice(0, 3).forEach((event, index) => {
+            console.log(`  Event ${index + 1}:`, {
+              summary: event.summary,
+              start: event.start?.dateTime || event.start?.date,
+              end: event.end?.dateTime || event.end?.date,
+            });
+          });
+        }
+
+        console.log('🔄 Prüfe auf Terminüberschneidungen...');
         const hasConflict = events.some((event) => {
-          if (!event.start?.dateTime || !event.end?.dateTime) return false;
-          return hasOverlap(
+          if (!event.start?.dateTime || !event.end?.dateTime) {
+            console.log(`⚠️ Event ohne Start/End-Zeit übersprungen:`, {
+              summary: event.summary,
+              start: event.start,
+              end: event.end,
+            });
+            return false;
+          }
+
+          const conflict = hasOverlap(
             startTime,
             endTime,
             event.start.dateTime,
             event.end.dateTime,
           );
+
+          if (conflict) {
+            console.log(`⚠️ Konflikt gefunden mit Event:`, {
+              summary: event.summary,
+              start: event.start.dateTime,
+              end: event.end.dateTime,
+            });
+          }
+
+          return conflict;
         });
 
+        console.log(
+          `✅ Verfügbarkeitsprüfung abgeschlossen: ${!hasConflict ? 'Verfügbar' : 'Nicht verfügbar'}`,
+        );
         return !hasConflict;
-      } catch (error) {
-        console.error('Fehler bei der Verfügbarkeitsprüfung:', error);
+      } catch (error: unknown) {
+        console.error('❌ Fehler bei der Verfügbarkeitsprüfung:', error);
+        if (
+          error &&
+          typeof error === 'object' &&
+          'response' in error &&
+          error.response &&
+          typeof error.response === 'object' &&
+          'data' in error.response
+        ) {
+          console.error('❌ API-Fehlerantwort:', error.response.data);
+        }
         throw error;
       }
     },
     60,
-  );
-}
-
-/**
- * Service module for checking calendar availability
- * @module check-time-slot-availability
- */
-
-/** Calendar configuration */
-const CONFIG = {
-  /** Calendar ID from environment variables */
-  CALENDAR_ID: process.env.AUTH_CALENDAR_ID,
-  /** Cache duration in seconds */
-  CACHE_TTL: 5 * 60,
-  /** Number of days to look ahead */
-  DAYS_AHEAD: 14,
-} as const;
-
-/** Response interface for availability check */
-interface AvailabilityResponse {
-  /** Array of available time slots */
-  availableSlots: TimeSlot[];
-  /** Available slots grouped by date */
-  slotsByDate: Record<string, TimeSlot[]>;
-  /** Start of the checked period */
-  periodStart: Date;
-  /** End of the checked period */
-  periodEnd: Date;
-}
-
-/**
- * Checks availability for time slots over the next 14 days
- * @param startDate - Optional start date, defaults to current date
- * @returns Promise resolving to availability information
- * @throws Error if calendar is not configured or check fails
- */
-export async function getAvailabilityForNext14Days(
-  startDate: Date = new Date(),
-): Promise<AvailabilityResponse> {
-  if (!CONFIG.CALENDAR_ID) {
-    throw new Error('Calendar ID not configured');
-  }
-
-  const cacheKey = `calendar:availability:14days:${startDate.toISOString()}`;
-
-  return await cache(
-    cacheKey,
-    async () => {
-      try {
-        const calendar = await getGoogleCalendar();
-        const localStart = toLocalTime(startDate);
-        const periodEnd = addDays(localStart, CONFIG.DAYS_AHEAD);
-
-        // Fetch events from calendar
-        const response = await calendar.events.list({
-          calendarId: CONFIG.CALENDAR_ID,
-          timeMin: toUTC(localStart).toISOString(),
-          timeMax: toUTC(periodEnd).toISOString(),
-          singleEvents: true,
-          orderBy: 'startTime',
-        });
-
-        // Transform events to internal format
-        const events: CalendarEvent[] = (response.data.items || [])
-          .filter((event) => event.start?.dateTime && event.end?.dateTime)
-          .map((event) => ({
-            start: event.start!.dateTime!,
-            end: event.end!.dateTime!,
-          }));
-
-        // Get available slots
-        const availableSlots = getAvailableTimeSlots(startDate, events);
-
-        return {
-          availableSlots,
-          slotsByDate: groupSlotsByDate(availableSlots),
-          periodStart: startDate,
-          periodEnd,
-        };
-      } catch (error) {
-        console.error('14-day availability check failed:', error);
-        throw new Error('Failed to check availability');
-      }
-    },
-    CONFIG.CACHE_TTL,
   );
 }

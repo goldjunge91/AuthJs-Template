@@ -23,6 +23,8 @@ export const publicRoutes = [
   '/admin',
   '/client',
   '/settings',
+  '/api/calendar/check-availability',
+  '/api/calendar/(.*)',
 ];
 
 /**
