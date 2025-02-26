@@ -1,52 +1,56 @@
-import { NextResponse } from 'next/server';
-import { checkTimeSlotAvailability } from '@/actions/booking/check-time-slot-availability';
+import { NextRequest, NextResponse } from 'next/server';
+import { getAvailableTimeSlotsForDay } from '@/actions/booking/calendar-actions';
+import { format, parseISO } from 'date-fns';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const startParam = searchParams.get('start');
-    const endParam = searchParams.get('end');
+    // URL-Parameter abrufen
+    const searchParams = request.nextUrl.searchParams;
+    const dateParam = searchParams.get('date');
 
-    if (!startParam || !endParam) {
+    // Prüfen, ob das Datum angegeben wurde
+    if (!dateParam) {
       return NextResponse.json(
-        { error: 'Start- und Endzeit müssen angegeben werden' },
+        { success: false, error: 'Datum muss angegeben werden' },
         { status: 400 },
       );
     }
 
-    const startTime = new Date(startParam);
-    const endTime = new Date(endParam);
+    // Datum parsen
+    const date = parseISO(dateParam);
 
-    if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
-      return NextResponse.json(
-        { error: 'Ungültiges Datumsformat' },
-        { status: 400 },
-      );
-    }
+    // Verfügbare Zeitslots abrufen
+    const availableTimeSlots = await getAvailableTimeSlotsForDay(date);
 
-    console.log('API Route: Prüfe Verfügbarkeit für:', {
-      start: startTime.toISOString(),
-      end: endTime.toISOString(),
+    // Zeitslots in das erwartete Format umwandeln
+    const formattedSlots = availableTimeSlots.map((timeString) => {
+      const [hours, minutes] = timeString.split(':').map(Number);
+      const slotDate = new Date(date);
+      slotDate.setHours(hours, minutes, 0, 0);
+
+      return {
+        time: timeString,
+        dateTime: slotDate.toISOString(),
+        isAvailable: true,
+      };
     });
 
-    try {
-      const isAvailable = await checkTimeSlotAvailability(startTime, endTime);
-      console.log('API Route: Verfügbarkeitsresultat:', isAvailable);
-      return NextResponse.json({ isAvailable });
-    } catch (calendarError) {
-      console.error(
-        'API Route: Fehler bei der Verfügbarkeitsprüfung:',
-        calendarError,
-      );
-      // Im Fehlerfall ist der Slot nicht verfügbar
-      return NextResponse.json({ isAvailable: false });
-    }
+    // Erfolgreiche Antwort zurückgeben
+    return NextResponse.json({
+      success: true,
+      availableSlots: formattedSlots,
+    });
   } catch (error) {
-    console.error('Genereller Fehler bei der Zeitslot-Prüfung:', error);
+    console.error('Fehler bei der Kalenderabfrage:', error);
+
+    // Fehlermeldung zurückgeben
     return NextResponse.json(
       {
-        error: 'Fehler bei der Verfügbarkeitsprüfung',
-        isAvailable: false,
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Unbekannter Fehler bei der Kalenderabfrage',
       },
       { status: 500 },
     );

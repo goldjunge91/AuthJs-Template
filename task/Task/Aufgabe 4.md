@@ -19,8 +19,3 @@ Erwartetes Ergebnis:
 	•	Fertige Seite für Schritt 5 (Termin).
 	•	Funktionierende Google Calendar-Anbindung, die verfügbare Slots ausgibt.
 	•	Nutzer kann Termin auswählen, Daten werden im globalen State gespeichert.
-
-Prüfung:
-	•	Aufruf der Kalender-API klappt.
-	•	Zeitzonen (Berlin) werden korrekt angezeigt.
-	•	User kann einen Termin erfolgreich auswählen.

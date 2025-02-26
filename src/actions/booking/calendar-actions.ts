@@ -35,6 +35,21 @@ export async function getBusyTimeSlots(
   console.log(
     `🔍 getBusyTimeSlots aufgerufen für: ${startDate.toISOString()} bis ${endDate.toISOString()}`,
   );
+
+  // Validierung der Eingabeparameter
+  if (
+    !startDate ||
+    !endDate ||
+    isNaN(startDate.getTime()) ||
+    isNaN(endDate.getTime())
+  ) {
+    console.error('❌ Start- und Endzeit müssen angegeben werden', {
+      startDate,
+      endDate,
+    });
+    throw new Error('Start- und Endzeit müssen angegeben werden');
+  }
+
   const cacheKey = `busy-slots:${startDate.toISOString()}:${endDate.toISOString()}`;
 
   return cache(
@@ -230,16 +245,25 @@ export async function getAvailableTimeSlotsForDay(
     `🔍 getAvailableTimeSlotsForDay aufgerufen für: ${date.toISOString()}`,
   );
 
+  // Sicherstellen, dass ein gültiges Datum übergeben wurde
+  if (!date || isNaN(date.getTime())) {
+    console.error('❌ Ungültiges Datum übergeben:', date);
+    throw new Error('Ungültiges Datum');
+  }
+
   // Wenn es ein Wochenende ist, direkt leeres Array zurückgeben
   if (isWeekend(date)) {
     console.log('⚠️ Datum ist ein Wochenende, keine verfügbaren Slots');
     return [];
   }
 
+  // Erstelle eine Kopie des Datums, um Referenzprobleme zu vermeiden
+  const dateCopy = new Date(date);
+
   console.log('🔄 Hole besetzte Zeitslots...');
   const busySlots = await getBusyTimeSlots(
-    new Date(date.setHours(0, 0, 0, 0)),
-    new Date(date.setHours(23, 59, 59, 999)),
+    new Date(dateCopy.setHours(0, 0, 0, 0)),
+    new Date(new Date(date).setHours(23, 59, 59, 999)),
   );
   console.log(`✅ ${busySlots.length} besetzte Slots gefunden`);
 

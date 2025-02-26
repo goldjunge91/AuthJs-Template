@@ -124,7 +124,7 @@ export function DateTimeSelection() {
         );
 
         try {
-          // Eigentliche Anfrage
+          // Eigentliche Anfrage mit dem ISO-String des Datums
           const fetchPromise = fetch(
             `/api/calendar/check-availability?date=${date.toISOString()}`,
             {
