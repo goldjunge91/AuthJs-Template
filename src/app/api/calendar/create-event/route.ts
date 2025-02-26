@@ -1,94 +1,102 @@
 import { NextResponse } from 'next/server';
 // import { JWT } from 'google-auth-library';
-import { BookingState } from '../../../booking/_lib/_store/state-store';
 import { getAvailableTimeSlots } from '../../../../actions/booking/availability-utils';
-import { toUTC } from '@/actions/booking/time-utils';
 import { getGoogleCalendar } from '@/utils/google/google-calendar';
+import { headers } from 'next/headers';
 
 const CALENDAR_ID = process.env.AUTH_CALENDAR_ID;
 const PRIVATE_KEY = process.env.AUTH_PRIVATE_KEY?.replace(/\\n/g, '\n');
 const CLIENT_EMAIL = process.env.AUTH_CLIENT_EMAIL;
 // const SCOPES = ['https://www.googleapis.com/auth/calendar'];
 
+// API-Key für Tests mit Curl/Postman
+const API_KEY = process.env.API_TEST_KEY;
+
 if (!CALENDAR_ID || !PRIVATE_KEY || !CLIENT_EMAIL) {
   throw new Error(
     'Google Calendar Konfiguration fehlt in den Umgebungsvariablen',
   );
 }
+
+// Hilfsfunktion zur Validierung des API-Keys
+async function validateApiKey(): Promise<boolean> {
+  const headersList = headers();
+  const apiKey = (await headersList).get('x-api-key');
+
+  // Im Entwicklungsmodus oder mit gültigem API-Key fortfahren
+  return process.env.NODE_ENV === 'development' || apiKey === API_KEY;
+}
+
 export async function POST(request: Request) {
+  // API-Key-Validierung
+  if (!(await validateApiKey())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
-    // Parse the JSON body from the incoming request.
-    // bookingData contains all the necessary booking information (customer details, vehicle information, etc.).
-    const bookingData: BookingState = await request.json();
+    const body = await request.json();
+    const {
+      dateTime,
+      duration,
+      vehicleClass,
+      contactDetails,
+      selectedPackages,
+    } = body;
 
-    // Get an authenticated Google Calendar client.
+    if (!dateTime || !duration || !vehicleClass || !contactDetails) {
+      return NextResponse.json(
+        { error: 'Fehlende Daten für Kalendereintrag' },
+        { status: 400 },
+      );
+    }
+
+    // Formatiere die Beschreibung
+    const description = `
+Fahrzeugklasse: ${vehicleClass}
+Pakete: ${selectedPackages.join(', ')}
+Dauer: ${duration} Minuten
+Kontakt: ${contactDetails.email} | ${contactDetails.phone}
+Name: ${contactDetails.firstName} ${contactDetails.lastName}
+    `.trim();
+
+    // Berechne die Endzeit
+    const startTime = new Date(dateTime);
+    const endTime = new Date(startTime.getTime() + duration * 60000);
+
+    // Erstelle den Kalendereintrag
     const calendar = await getGoogleCalendar();
-
-    // Create the event object with all necessary details.
-    // The summary shows the vehicle class.
-    // The description concatenates customer details, address, vehicle info, and selected packages.
-    // The location is derived from the customer's address.
-    // The start time is converted to UTC and formatted as an ISO string.
-    // The end time is calculated by adding the duration (in minutes) to the booking date/time.
-    const event = {
-      summary: `Fahrzeugaufbereitung - ${bookingData.vehicleClass}`,
-      description: `
-Kunde: ${bookingData.contactDetails.firstName} ${bookingData.contactDetails.lastName}
-Email: ${bookingData.contactDetails.email}
-Telefon: ${bookingData.contactDetails.phone}
-
-Adresse:
-		${bookingData.contactDetails.street} ${bookingData.contactDetails.number}
-		${bookingData.contactDetails.postalCode} ${bookingData.contactDetails.city}
-
-Fahrzeug: ${bookingData.vehicleClass}
-Pakete: ${bookingData.selectedPackages.join(', ')}
-			`.trim(),
-      location: `${bookingData.contactDetails.street} ${bookingData.contactDetails.number}, ${bookingData.contactDetails.postalCode} ${bookingData.contactDetails.city}`,
-      start: {
-        // Convert the provided booking date/time to a Date, then to UTC and format it as ISO.
-        dateTime: toUTC(new Date(bookingData.dateTime!)).toISOString(),
-        // Specify the calendar's time zone.
-        timeZone: 'Europe/Berlin',
-      },
-      end: {
-        // Calculate the end time by adding the duration (converted from minutes to milliseconds) to the start time.
-        dateTime: new Date(
-          new Date(bookingData.dateTime!).getTime() +
-            bookingData.duration * 60000,
-        ).toISOString(),
-        timeZone: 'Europe/Berlin',
-      },
-    };
-
-    // Insert the event into Google Calendar using the specific calendar ID.
-    const response = await calendar.events.insert({
-      calendarId: CALENDAR_ID,
-      requestBody: event,
-    });
-
-    // Return a successful JSON response including the data from the calendar event creation.
-    return NextResponse.json(
-      {
-        success: true,
-        data: response.data,
-        message: 'Termin erfolgreich erstellt',
-      },
-      { status: 201 },
-    );
-  } catch (error: any) {
-    // Log the error for debugging purposes.
-    console.error('Fehler beim Erstellen des Termins:', error);
-    // Return a JSON error response with status 500.
-    return NextResponse.json(
-      {
-        error: {
-          status: 500,
-          title: 'Serverfehler',
-          detail: error.message || 'Fehler bei der Terminerstellung',
-          type: 'https://httpstatuses.com/500',
+    const event = await calendar.events.insert({
+      calendarId: process.env.AUTH_CALENDAR_ID || 'primary',
+      requestBody: {
+        summary: `Fahrzeugpflege: ${vehicleClass}`,
+        description,
+        start: {
+          dateTime: startTime.toISOString(),
+          timeZone: 'Europe/Berlin',
+        },
+        end: {
+          dateTime: endTime.toISOString(),
+          timeZone: 'Europe/Berlin',
+        },
+        attendees: [{ email: contactDetails.email }],
+        reminders: {
+          useDefault: false,
+          overrides: [
+            { method: 'email', minutes: 24 * 60 },
+            { method: 'popup', minutes: 60 },
+          ],
         },
       },
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: event.data,
+    });
+  } catch (error) {
+    console.error('Fehler beim Erstellen des Kalendereintrags:', error);
+    return NextResponse.json(
+      { error: 'Fehler beim Erstellen des Kalendereintrags' },
       { status: 500 },
     );
   }

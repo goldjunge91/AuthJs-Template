@@ -4,6 +4,8 @@
  * */
 export const publicRoutes = [
   '/',
+  '/:path*',
+  '/(.*)',
   '/pakete',
   '/booking',
   '/new-verification',
@@ -23,11 +25,17 @@ export const publicRoutes = [
   '/admin',
   '/client',
   '/settings',
+  '/api/stripe/checkout',
+  '/api/stripe/success',
+  '/api/stripe/webhook',
+  '/api/stripe/get-booking',
+  '/api/calendar/create-event',
   '/api/calendar/check-availability',
   '/api/calendar/(.*)',
   '/api/calendar/:path*',
   '/public/(.*)',
   '/public/assets/packages/(.*',
+  '/api/stripe/:path*',
 ];
 
 /**

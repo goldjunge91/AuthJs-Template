@@ -4,6 +4,9 @@ import Stripe from 'stripe';
 import { db } from '@/db';
 import { bookings } from '@/db/schemas/bookings';
 import { formatAmountForStripe } from '@/utils/stripe/stripe-helpers';
+import { auth } from '@/auth';
+import { users } from '@/db/schemas/users';
+import { eq } from 'drizzle-orm';
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -13,15 +16,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 // API-Key für Tests mit Curl/Postman
 const API_KEY = process.env.API_TEST_KEY;
 
-// Hilfsfunktion zur Validierung des API-Keys - Entfernung des export
+// Hilfsfunktion zur Validierung des API-Keys
 async function validateApiKey(): Promise<boolean> {
   const headersList = await headers();
-  const apiKey = headersList.get('x-api-key'); // Await notwendig
+  const apiKey = headersList.get('x-api-key');
   return process.env.NODE_ENV === 'development' || apiKey === API_KEY;
 }
-
-// Im Entwicklungsmodus oder mit gültigem API-Key fortfahren
-// }
 
 export async function POST(request: Request) {
   try {
@@ -49,35 +49,52 @@ export async function POST(request: Request) {
       );
     }
 
-    // Extract date and time from dateTime string
-    const [date, timeSlot] = dateTime.split('T');
+    // Get user session
+    const session = await auth();
 
-    // Format metadata for Stripe
-    const metadata = {
-      vehicleClass,
-      dateTime,
-      totalDuration: duration.toString(),
-      contactDetails: JSON.stringify(customerDetails),
-      packages: JSON.stringify({
-        selectedPackage,
-        additionalOptions,
-      }),
-    };
+    // Prüfe, ob der Benutzer existiert oder verwende einen gültigen Benutzer
+    let userId = session?.user?.id;
 
-    // Get origin for success/cancel URLs
-    const headersList = await headers();
-    const origin = headersList.get('origin') || process.env.NEXT_PUBLIC_APP_URL;
+    if (!userId) {
+      // Prüfe, ob der anonyme Benutzer existiert
+      const anonymousUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, 'anonymous-user'))
+        .limit(1);
+
+      if (anonymousUser.length > 0) {
+        userId = 'anonymous-user';
+      } else {
+        // Erstelle den anonymen Benutzer, wenn er nicht existiert
+        await db.insert(users).values({
+          id: 'anonymous-user',
+          name: 'Anonymer Benutzer',
+          email: 'anonymous@example.com',
+          emailVerified: new Date(),
+        });
+        userId = 'anonymous-user';
+      }
+    }
+
+    // Format date and time for database
+    const bookingDate = new Date(dateTime);
+    const date = bookingDate.toISOString().split('T')[0]; // YYYY-MM-DD
+    const timeSlot = bookingDate.toTimeString().substring(0, 5); // HH:MM
 
     // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
+    const stripeSession = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
         {
           price_data: {
             currency: 'eur',
             product_data: {
-              name: `Fahrzeugpflege ${vehicleClass}`,
-              description: `Buchung für ${new Date(dateTime).toLocaleString('de-DE')}`,
+              name: `Fahrzeugpflege: ${vehicleClass} - ${selectedPackage}`,
+              description: `Termin am ${new Date(dateTime).toLocaleString('de-DE')}`,
+              images: [
+                `${process.env.NEXT_PUBLIC_APP_URL}/images/vehicles/${vehicleClass.toLowerCase()}.jpg`,
+              ],
             },
             unit_amount: formatAmountForStripe(
               calculatedPrice.totalPrice,
@@ -88,24 +105,46 @@ export async function POST(request: Request) {
         },
       ],
       mode: 'payment',
-      success_url: `${origin}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/booking/cancel?session_id={CHECKOUT_SESSION_ID}`,
-      metadata,
-      customer_email: customerDetails.email,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/booking/cancel?session_id={CHECKOUT_SESSION_ID}`,
+      metadata: {
+        vehicleClass,
+        packageType: selectedPackage,
+        additionalOptions: additionalOptions
+          ? JSON.stringify(additionalOptions)
+          : '',
+        dateTime: dateTime,
+        totalDuration: duration.toString(),
+        contactDetails: JSON.stringify(customerDetails),
+      },
     });
 
-    // Save booking to database with pending status
+    // Save booking to database
     await db.insert(bookings).values({
-      stripeSessionId: session.id,
+      userId,
+      stripeSessionId: stripeSession.id,
       date,
       timeSlot,
       status: 'pending',
       customerEmail: customerDetails.email,
       customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
+      street: customerDetails.street || '',
+      streetNumber: customerDetails.streetNumber || '',
+      city: customerDetails.city || '',
+      phone: customerDetails.phone || '',
       packageType: selectedPackage,
+      additionalOptions: additionalOptions
+        ? JSON.stringify(additionalOptions)
+        : null,
+      price: formatAmountForStripe(calculatedPrice.totalPrice, 'eur'),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
     });
 
-    return NextResponse.json({ sessionId: session.id, url: session.url });
+    return NextResponse.json({
+      sessionId: stripeSession.id,
+      url: stripeSession.url,
+    });
   } catch (error) {
     console.error('Fehler bei der Erstellung der Checkout-Session:', error);
     return NextResponse.json(
@@ -117,7 +156,7 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   // API-Key-Validierung
-  if (!validateApiKey()) {
+  if (!(await validateApiKey())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

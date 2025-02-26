@@ -43,6 +43,62 @@
       "when": 1718952389590,
       "tag": "0005_equal_havok",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1740531381510,
+      "tag": "0006_keen_apocalypse",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1740531525550,
+      "tag": "0007_magical_supreme_intelligence",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1740532399062,
+      "tag": "0008_right_imperial_guard",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1740532476198,
+      "tag": "0009_loud_exodus",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1740533203126,
+      "tag": "0010_colorful_runaways",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1740536206466,
+      "tag": "0011_familiar_venom",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1740536217362,
+      "tag": "0012_rainy_anita_blake",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1740536659504,
+      "tag": "0013_slimy_runaways",
+      "breakpoints": true
     }
   ]
 }

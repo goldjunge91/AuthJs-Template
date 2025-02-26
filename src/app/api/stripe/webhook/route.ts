@@ -15,8 +15,8 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 export async function POST(request: Request) {
   const body = await request.text();
-  const headersList = headers();
-  const signature = (await headersList).get('stripe-signature') as string;
+  const headersList = await headers();
+  const signature = headersList.get('stripe-signature') as string;
 
   // Überprüfe, ob die Signatur vorhanden ist
   if (!signature) {
@@ -53,8 +53,8 @@ export async function POST(request: Request) {
     );
   }
 
-  // Handle the event
   try {
+    // Handle the event
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -64,23 +64,19 @@ export async function POST(request: Request) {
           .update(bookings)
           .set({
             status: 'confirmed',
-            updatedAt: new Date(),
+            updatedAt: Date.now(),
           })
           .where(eq(bookings.stripeSessionId, session.id));
 
         // Create calendar event
         if (session.metadata) {
-          const {
-            dateTime,
-            totalDuration,
-            contactDetails,
-            vehicleClass,
-            packages,
-          } = session.metadata;
-          const contactInfo = JSON.parse(contactDetails);
-          const packageInfo = JSON.parse(packages);
+          const contactDetails = JSON.parse(
+            session.metadata.contactDetails || '{}',
+          );
+          const additionalOptions = session.metadata.additionalOptions
+            ? JSON.parse(session.metadata.additionalOptions)
+            : [];
 
-          // Create calendar event using the order@calendar
           const calendarResponse = await fetch(
             `${process.env.NEXT_PUBLIC_APP_URL}/api/calendar/create-event`,
             {
@@ -89,28 +85,27 @@ export async function POST(request: Request) {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                dateTime,
-                duration: parseInt(totalDuration),
-                vehicleClass,
-                contactDetails: contactInfo,
+                dateTime: session.metadata.dateTime,
+                duration: parseInt(session.metadata.totalDuration || '60'),
+                vehicleClass: session.metadata.vehicleClass,
+                contactDetails,
                 selectedPackages: [
-                  packageInfo.selectedPackage,
-                  ...packageInfo.additionalOptions,
+                  session.metadata.packageType,
+                  ...additionalOptions,
                 ],
               }),
             },
           );
 
-          if (calendarResponse.ok) {
-            const calendarData = await calendarResponse.json();
+          const calendarData = await calendarResponse.json();
 
-            // Update booking with calendar event ID
+          if (calendarData.success) {
             if (calendarData.data?.id) {
               await db
                 .update(bookings)
                 .set({
                   calendarEventId: calendarData.data.id,
-                  updatedAt: new Date(),
+                  updatedAt: Date.now(),
                 })
                 .where(eq(bookings.stripeSessionId, session.id));
             }
@@ -128,7 +123,7 @@ export async function POST(request: Request) {
           .update(bookings)
           .set({
             status: 'expired',
-            updatedAt: new Date(),
+            updatedAt: Date.now(),
           })
           .where(eq(bookings.stripeSessionId, session.id));
         break;

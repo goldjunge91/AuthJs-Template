@@ -1,5 +1,11 @@
 import { sql } from 'drizzle-orm';
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import {
+  integer,
+  SQLiteColumn,
+  sqliteTable,
+  SQLiteTableWithColumns,
+  text,
+} from 'drizzle-orm/sqlite-core';
 
 export const appointments = sqliteTable('appointments', {
   id: text('id')
@@ -30,3 +36,6 @@ export const appointments = sqliteTable('appointments', {
 
 export type Appointment = typeof appointments.$inferSelect;
 export type NewAppointment = typeof appointments.$inferInsert;
+
+export type InsertAppointment = typeof appointments.$inferInsert;
+export type SelectAppointment = typeof appointments.$inferSelect;

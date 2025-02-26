@@ -9,6 +9,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { Footer } from '@/components/layout/footer';
 import CookieConsentComponent from '@/utils/cookies/CookieConsent';
 import Navbar from '@/components/layout/Navbar';
+import { InitAnonymousUser } from '@/components/init-anonymous-user';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -47,7 +48,10 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <Navbar />
-          <main>{children}</main>
+          <main>
+            <InitAnonymousUser />
+            {children}
+          </main>
           <Toaster />
           <ThemeToggle />
           <CookieConsentComponent />

@@ -4,6 +4,7 @@ import type { VehicleClass, CustomerDetails } from '../_types';
 import { packages, additionalOptions } from '@/app/booking/_data';
 
 interface CalculatedPrice {
+  basePrice: number;
   packagePrice: number;
   additionalOptionsPrice: number;
   totalPrice: number;
@@ -41,7 +42,8 @@ const initialState: BookingState = {
   calculatedPrice: {
     packagePrice: 0, // preis des ausgewählten pakets
     additionalOptionsPrice: 0, // preis der zusätzlichen optionen
-    totalPrice: 0, // gesamtpreis
+    totalPrice: 0,
+    basePrice: 0,
   },
   duration: 0, // gesamtdauer in minuten
   isValid: false, // gültigkeit der buchung
