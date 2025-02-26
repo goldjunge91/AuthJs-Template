@@ -4,7 +4,11 @@ import { useTheme } from 'next-themes';
 import { useEffect, useState, useRef } from 'react';
 import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
 
-export function VideoPlayer() {
+interface VideoPlayerProps {
+  fallbackMode?: boolean;
+}
+
+export function VideoPlayer({ fallbackMode = false }: VideoPlayerProps) {
   const [isMounted, setIsMounted] = useState(false);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -12,23 +16,48 @@ export function VideoPlayer() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
 
+  // Diese Funktion prüft, ob die Videodatei existiert
+  const checkVideoExists = async (url: string): Promise<boolean> => {
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      return response.ok;
+    } catch (error) {
+      console.error('Fehler beim Prüfen der Videodatei:', error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     setIsMounted(true);
 
-    // Starte das Video automatisch, wenn die Komponente geladen ist
-    if (videoRef.current) {
-      videoRef.current.play().catch((error) => {
-        console.log('Autoplay wurde verhindert:', error);
-        // Fallback: Video stumm schalten und erneut versuchen
-        if (videoRef.current) {
-          videoRef.current.muted = true;
-          setIsMuted(true);
-          videoRef.current
-            .play()
-            .catch((e) => console.log('Autoplay nicht möglich:', e));
-        }
-      });
-    }
+    // Prüfe, ob die Videodatei verfügbar ist
+    checkVideoExists('/videos/car-detailing.mp4').then((exists) => {
+      if (!exists) {
+        console.warn(
+          'Videodatei nicht gefunden. Bitte stelle sicher, dass die Datei existiert.',
+        );
+      }
+
+      // Starte das Video automatisch, wenn die Komponente geladen ist
+      if (videoRef.current) {
+        videoRef.current.muted = true; // Immer stumm starten - wichtig für Autoplay
+        setIsMuted(true);
+
+        videoRef.current.play().catch((error) => {
+          console.log('Autoplay wurde verhindert:', error);
+          // Weitere Versuche sind optional, da wir bereits muted gesetzt haben
+        });
+      }
+    });
+
+    // Cleanup-Funktion
+    return () => {
+      if (videoRef.current) {
+        videoRef.current.pause();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        videoRef.current.src = '';
+      }
+    };
   }, []);
 
   const togglePlay = () => {
@@ -49,8 +78,12 @@ export function VideoPlayer() {
     }
   };
 
-  if (!isMounted) {
-    return null;
+  // Importiere die Fallback-Komponente für den Video-Player
+  const { FallbackVideoPlayer } = require('./fallback-video-player');
+
+  // Wenn noch nicht geladen oder im Fallback-Modus
+  if (!isMounted || fallbackMode) {
+    return fallbackMode ? <FallbackVideoPlayer /> : null;
   }
 
   return (
@@ -83,14 +116,29 @@ export function VideoPlayer() {
             <video
               ref={videoRef}
               className='h-auto w-full'
-              poster='/images/video-thumbnail.jpg' // Platzhalter-Bild (muss existieren oder entfernt werden)
+              poster='/images/video-thumbnail.jpg' // Platzhalter-Bild
               autoPlay
               loop
+              muted
               playsInline
+              controlsList='nodownload'
               onEnded={() => setIsPlaying(false)}
+              onError={(e) => console.error('Video-Fehler:', e)}
             >
+              {/* Mehrere Quellen für bessere Kompatibilität */}
               <source src='/videos/car-detailing.mp4' type='video/mp4' />
-              Ihr Browser unterstützt keine Videos.
+              <source src='/videos/car-detailing.webm' type='video/webm' />
+              <p className='p-4 text-center'>
+                Ihr Browser unterstützt keine Videos.{' '}
+                <a
+                  href='/videos/car-detailing.mp4'
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='text-blue-500 hover:underline'
+                >
+                  Video herunterladen
+                </a>
+              </p>
             </video>
 
             {/* Video Controls */}

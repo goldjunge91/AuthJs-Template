@@ -1,16 +1,14 @@
 import React from 'react';
-import type { Metadata } from 'next';
+import type { Metadata } from 'next/types';
 import './globals.css';
 import { ThemeProvider } from 'next-themes';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
-// import Navbar from '@/components/Navbar';
-import { Inter } from 'next/font/google';
-import { Rubik } from 'next/font/google';
+import { Inter, Rubik } from 'next/font/google';
 import { Toaster } from '@/components/ui/sonner';
 import { Footer } from '@/components/layout/footer';
-import Navbar from '@/components/layout/Navbar';
 import CookieConsentComponent from '@/utils/cookies/CookieConsent';
+import Navbar from '@/components/layout/Navbar';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -34,10 +32,10 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang='en' suppressHydrationWarning>
+    <html lang='de' suppressHydrationWarning>
       <body
         className={cn(
-          'mx-auto h-screen bg-neutral-100 dark:bg-neutral-900',
+          'dark:background mx-auto h-screen',
           inter.variable,
           rubik.variable,
         )}
@@ -49,7 +47,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <Navbar />
-          <main className='pt-[76px]'>{children}</main>
+          <main>{children}</main>
           <Toaster />
           <ThemeToggle />
           <CookieConsentComponent />

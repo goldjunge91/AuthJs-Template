@@ -2,7 +2,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 
-import logo from '@/../public/assets/logo.jpeg';
+// import logo from './assets/logo.jpeg';
+import logo from '../../../public/assets/logo.jpeg';
 import { auth } from '@/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SignOut } from '../AuthButton';
@@ -52,7 +53,7 @@ export default async function Navbar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className='text-1xl text-size- hover:text-primary-500 dark:hover:text-primary-400 group relative text-gray-700 transition-colors dark:text-gray-300'
+                  className='text-1xl text-size- group relative text-gray-700 transition-colors hover:text-primary-500 dark:text-gray-300 dark:hover:text-primary-400'
                 >
                   {item.label}
                   <span className='absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 transform bg-black transition-transform duration-300 ease-out group-hover:scale-x-100 dark:bg-white' />

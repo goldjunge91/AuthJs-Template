@@ -19,7 +19,7 @@ export default function Kontakt() {
 
             <div className='space-y-6'>
               <div className='flex items-start'>
-                <Phone className='text-primary-600 dark:text-primary-400 mt-1 h-6 w-6' />
+                <Phone className='mt-1 h-6 w-6 text-primary-600 dark:text-primary-400' />
                 <div className='ml-4'>
                   <h3 className='font-medium dark:text-white'>Telefon</h3>
                   <p className='text-gray-600 dark:text-gray-300'>
@@ -29,7 +29,7 @@ export default function Kontakt() {
               </div>
 
               <div className='flex items-start'>
-                <Mail className='text-primary-600 dark:text-primary-400 mt-1 h-6 w-6' />
+                <Mail className='mt-1 h-6 w-6 text-primary-600 dark:text-primary-400' />
                 <div className='ml-4'>
                   <h3 className='font-medium dark:text-white'>E-Mail</h3>
                   <p className='text-gray-600 dark:text-gray-300'>
@@ -39,7 +39,7 @@ export default function Kontakt() {
               </div>
 
               <div className='flex items-start'>
-                <MapPin className='text-primary-600 dark:text-primary-400 mt-1 h-6 w-6' />
+                <MapPin className='mt-1 h-6 w-6 text-primary-600 dark:text-primary-400' />
                 <div className='ml-4'>
                   <h3 className='font-medium dark:text-white'>Adresse</h3>
                   <p className='text-gray-600 dark:text-gray-300'>
@@ -51,7 +51,7 @@ export default function Kontakt() {
               </div>
 
               <div className='flex items-start'>
-                <Clock className='text-primary-600 dark:text-primary-400 mt-1 h-6 w-6' />
+                <Clock className='mt-1 h-6 w-6 text-primary-600 dark:text-primary-400' />
                 <div className='ml-4'>
                   <h3 className='font-medium dark:text-white'>
                     Öffnungszeiten

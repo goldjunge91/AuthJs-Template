@@ -4,26 +4,30 @@
  * */
 export const publicRoutes = [
   '/',
+  '/pakete',
+  '/booking',
   '/new-verification',
   '/onboarding',
-  '/settings',
-  '/login',
   '/register',
-  '/sign-in',
-  '/sign-up',
   '/reset-password',
   '/new-password',
   '/loginerror',
   '/login/magic-link',
   '/settings',
   '/client',
+  '/faq',
+  '/kontakt',
+  '/impressum',
+  '/datenschutz',
   '/server',
   '/admin',
   '/client',
   '/settings',
   '/api/calendar/check-availability',
   '/api/calendar/(.*)',
+  '/api/calendar/:path*',
   '/public/(.*)',
+  '/public/assets/packages/(.*',
 ];
 
 /**
@@ -34,6 +38,8 @@ export const publicRoutes = [
 export const authRoutes = [
   '/onboarding',
   '/register',
+  '/sign-in',
+  '/sign-out',
   '/loginerror',
   '/reset-password',
   '/new-password',

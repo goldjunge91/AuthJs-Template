@@ -18,14 +18,14 @@ export default function EffectsPage() {
       </h1>
 
       {/* 🔹 Fade-In Effekt */}
-      <p className='animate-fade-in mt-4 text-lg'>
+      <p className='mt-4 animate-fade-in text-lg'>
         Schöne Animationen mit Tailwind CSS
       </p>
 
       {/* 🔹 Pulsierender Button */}
       <button
         onClick={() => setShowSidebar(true)}
-        className='animate-pulsieren mt-6 rounded-lg bg-primary px-6 py-3 text-lg font-semibold text-primary-foreground shadow-lg transition-transform hover:scale-105'
+        className='mt-6 animate-pulsieren rounded-lg bg-primary px-6 py-3 text-lg font-semibold text-primary-foreground shadow-lg transition-transform hover:scale-105'
       >
         Sidebar Öffnen
       </button>

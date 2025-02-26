@@ -1,5 +1,8 @@
 {
     "IDX.aI.enableCodebaseIndexing": false,
 	"IDX.aI.enableInlineCompletion": false,
-	"typescript.tsdk": "node_modules\\typescript\\lib"
+	"typescript.tsdk": "node_modules\\typescript\\lib",
+	"css.validate": false,
+	"less.validate": false,
+	"scss.validate": false
 }

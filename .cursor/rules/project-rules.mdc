@@ -1,0 +1,57 @@
+---
+description: rules Techstack
+globs: *.tsx, *.ts
+---
+1. Dateistruktur:
+- Verwenden Sie die Verzeichnisstruktur des App Routers (Ordner `app/`) [^1]
+- Wiederverwendbare Komponenten im Verzeichnis `components/` ablegen
+- Verwenden Sie `page.js` für Routenkomponenten
+- Verwenden Sie `layout.js` für gemeinsame Layouts
+- Verwenden Sie `loading.js` für Ladezustände
+- Benutze `error.js` für Fehlergrenzen
+
+2. React und JavaScript:
+- Verwenden Sie funktionale Komponenten und Hooks
+- Bevorzugen Sie standardmäßig Server-Komponenten, verwenden Sie bei Bedarf die Direktive 'use client' [^1]
+- Verwenden Sie ES6+ Syntax und Funktionen
+
+3. Shadcn UI und Radix UI:
+- Importieren Sie Shadcn UI Komponenten aus '@/components/ui' [^5]
+- Verwendung von Radix UI Primitiven für komplexe interaktive Komponenten
+- Anpassen von Shadcn UI Komponenten mit Hilfe der mitgelieferten Konfigurationsoptionen
+
+4. Tailwind CSS:
+- Verwenden Sie Tailwind Utility-Klassen für das Styling [^1][^5]
+- Verwendung der `@apply`-Direktive in CSS-Modulen für wiederverwendbare Stile
+- Verwenden Sie die `cn()` Utility-Funktion für bedingte Klassennamen
+
+5. Datenabrufe:
+- Verwenden Sie, wenn möglich, Server-Komponenten zum Abrufen von Daten
+- Implementieren Sie Ladezustände mit React Suspense und der Datei „loading.js“.
+- Verwenden Sie `fetch()` mit entsprechenden Caching-Optionen in Server-Komponenten
+
+6. Weiterleitung:
+- Benutzen Sie dateibasiertes Routing mit dem App Router
+- Verwendung der Link-Komponente für die clientseitige Navigation
+- Implementierung dynamischer Routen mit Klammersyntax (z. B. [id].js)
+
+7. Zustandsverwaltung:
+- Verwenden Sie React-Hooks (useState, useReducer) für lokale Zustände
+- Server-seitiges Zustandsmanagement mit Server-Komponenten in Betracht ziehen
+- Kontext für globalen Zustand verwenden, wenn nötig
+
+8. Leistung:
+- Code-Aufteilung mit dynamischen Importen implementieren
+- Image Komponente für optimierte Bilder verwenden
+- Nutzung der in Next.js integrierten Optimierungen (z. B. automatische statische Optimierung)
+
+9. Barrierefreiheit:
+- Nutzen Sie die in Radix UI eingebauten Funktionen für Barrierefreiheit
+- Verwendung semantischer HTML-Elemente
+- Implementierung geeigneter ARIA-Attribute, wenn nötig
+
+10. Bewährte Praktiken:
+- Befolgen Sie das DRY-Prinzip (Don't Repeat Yourself)
+- Implementierung einer angemessenen Fehlerbehandlung und Fallback-UI
+- Verwenden Sie TypeScript für Typsicherheit, wenn möglich
+- Schreiben Sie Unit-Tests für Komponenten und Hilfsfunktionen

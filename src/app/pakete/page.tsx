@@ -24,9 +24,9 @@ export default function PricingPackages() {
   ];
 
   return (
-    <div className='relative min-h-screen w-full bg-gray-50 dark:bg-black/95'>
+    <div className='relative min-h-screen w-full bg-transparent dark:bg-transparent/95'>
       {/* Animated Background */}
-      <div className='absolute inset-0 overflow-hidden'>
+      <div className='absolute inset-0 overflow-x-auto'>
         {/* Grid pattern */}
         <div
           className='absolute inset-0 opacity-[0.15]'

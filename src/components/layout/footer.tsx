@@ -1,11 +1,11 @@
-import { Mail, MapPin, Phone } from 'lucide-react';
-
+import { History, Mail, MapPin, Phone } from 'lucide-react';
 export function Footer() {
   return (
-    <footer className='z-100 relative mt-auto w-full bg-background text-foreground'>
+    <footer className='z-100 relative mt-auto w-full bg-transparent text-foreground'>
       <div className='xs:px-6 xs:py-10 mx-auto max-w-7xl px-4 py-8'>
-        <div className='xs:grid-cols-2 grid grid-cols-1 gap-8 md:grid-cols-4'>
-          <div>
+        <div className='xs:grid-cols-2 grid grid-cols-1 gap-8 text-center md:grid-cols-3'>
+          {/* First column - Contact info */}
+          <div className='flex flex-col items-center'>
             <h3 className='xs:text-xl mb-4 text-lg font-bold'>Jetwash</h3>
             <div className='space-y-2'>
               <p className='xs:text-base flex items-center text-sm text-muted-foreground'>
@@ -21,37 +21,8 @@ export function Footer() {
             </div>
           </div>
 
-          <div>
-            <h3 className='xs:text-xl mb-4 text-lg font-bold'>Service</h3>
-            <ul className='space-y-1'>
-              <li>
-                <a
-                  href='/pakete'
-                  className='xs:text-base text-sm text-muted-foreground transition-colors hover:text-primary'
-                >
-                  Unsere Pakete
-                </a>
-              </li>
-              <li>
-                <a
-                  href='/booking'
-                  className='xs:text-base text-sm text-muted-foreground transition-colors hover:text-primary'
-                >
-                  Termin buchen
-                </a>
-              </li>
-              <li>
-                <a
-                  href='/faq'
-                  className='xs:text-base text-sm text-muted-foreground transition-colors hover:text-primary'
-                >
-                  FAQ
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          <div>
+          {/* Second column - Legal links */}
+          <div className='flex flex-col items-center'>
             <h3 className='xs:text-xl mb-4 text-lg font-bold'>Rechtliches</h3>
             <ul className='space-y-2'>
               <li>
@@ -80,21 +51,25 @@ export function Footer() {
               </li>
             </ul>
           </div>
-          <div>
+
+          {/* Third column - Opening hours with large icon */}
+          <div className='flex flex-col items-center'>
             <h3 className='xs:text-xl mb-4 text-lg font-bold'>
               Öffnungszeiten
             </h3>
-            <ul className='xs:text-base space-y-2 text-sm text-muted-foreground'>
-              <li>Mo - Fr: 8:00 - 18:00</li>
-              <li>Sa: 9:00 - 14:00</li>
-              <li>So: Geschlossen</li>
-            </ul>
+            <div className='flex items-center gap-4'>
+              <History className='h-10 w-10 text-primary' />
+              <ul className='xs:text-base space-y-2 text-sm text-muted-foreground'>
+                <li>Rundum die Uhr</li>
+                <li>So: Geschlossen</li>
+              </ul>
+            </div>
           </div>
         </div>
 
         <div className='mt-8 border-t border-border pt-2 text-center'>
           <p className='xs:text-base text-sm text-muted-foreground'>
-            &copy; {new Date().getFullYear()} Jetwash. Alle Rechte vorbehalten.
+            © {new Date().getFullYear()} Jetwash. Alle Rechte vorbehalten.
           </p>
         </div>
       </div>

@@ -53,7 +53,7 @@ export default function BookingPage() {
   };
 
   return (
-    <main className='min-h-screen bg-background pt-24'>
+    <main className='min-h-screen bg-background pt-24 dark:bg-background'>
       <div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8'>
         {currentStep !== bookingSteps.length - 1 && (
           <div className='mb-12'>
@@ -92,7 +92,6 @@ export default function BookingPage() {
               resetAction={resetAction}
             />
           </div>
-
           {currentStep !== bookingSteps.length - 1 && (
             <div className='hidden md:block'>
               <BookingSummary />

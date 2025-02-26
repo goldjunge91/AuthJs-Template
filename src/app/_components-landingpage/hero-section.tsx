@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+// import { motion } from 'framer-motion';
 
 export function HeroSection() {
   const [isMounted, setIsMounted] = useState(false);
@@ -21,7 +22,7 @@ export function HeroSection() {
   }
 
   return (
-    <section className='mt-[65px]'>
+    <section className='mt-[0px]'>
       <div className='flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center sm:px-6 lg:px-8'>
         <div className='mx-auto max-w-4xl'>
           <div>
@@ -58,7 +59,7 @@ export function HeroSection() {
                 size='lg'
               >
                 <span className='relative z-10'>Preise Ansehen</span>
-                <div className='absolute inset-0 -z-10 bg-gradient-to-r from-emerald-500 to-emerald-400 opacity-0 transition-opacity duration-300 group-hover:opacity-10'></div>
+                <div className='absolute inset-0 -z-10 bg-gradient-to-r from-emerald-600 to-emerald-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100'></div>
               </Button>
             </Link>
             <Link href='/booking' className='min-w-[200px] sm:w-auto'>

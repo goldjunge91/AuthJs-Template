@@ -2,6 +2,8 @@ import { Suspense } from 'react';
 import { AnimatedCity } from './_components-landingpage/animated-city';
 import { HeroSection } from './_components-landingpage/hero-section';
 import { VideoPlayer } from './_components-landingpage/video-player';
+import { FallbackVideoPlayer } from './_components-landingpage/fallback-video-player';
+import { ErrorBoundary } from './_components/error-boundary';
 import { ClipLoader } from 'react-spinners';
 
 export default function Page() {
@@ -9,19 +11,18 @@ export default function Page() {
     <main className='relative'>
       <Suspense
         fallback={
-          <div className='flex min-h-[200px] items-center justify-center'>
+          <div className='flex items-center justify-center'>
             {' '}
-            <ClipLoader color='#2563eb' size={50} />
+            <ClipLoader color='#2563eb' size={80} />
           </div>
         }
       >
         <AnimatedCity />
       </Suspense>
-
       <div className='relative'>
         <Suspense
           fallback={
-            <div className='flex min-h-[200px] items-center justify-center'>
+            <div className='flex items-center justify-center'>
               {' '}
               <ClipLoader color='#2563eb' size={50} />
             </div>
@@ -30,17 +31,18 @@ export default function Page() {
           <HeroSection />
         </Suspense>
       </div>
-
       <div className='relative'>
         <Suspense
           fallback={
-            <div className='flex min-h-[200px] items-center justify-center'>
+            <div className='flex items-center justify-center'>
               {' '}
-              <ClipLoader color='#2563eb' size={50} />
+              <ClipLoader color='#2563eb' size={200} />
             </div>
           }
         >
-          <VideoPlayer />
+          <ErrorBoundary fallback={<FallbackVideoPlayer />}>
+            <VideoPlayer />
+          </ErrorBoundary>
         </Suspense>
       </div>
     </main>

@@ -7,21 +7,9 @@ import {
   apiAuthPrefix,
 } from './routes';
 
-const PUBLIC_FILE = /\.(.*)$/;
-
 export default async function middleware(request: NextRequest) {
   const { nextUrl } = request;
   const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
-  const { pathname } = nextUrl;
-
-  // Allow public files, videos, and images
-  if (
-    PUBLIC_FILE.test(pathname) ||
-    pathname.startsWith('/videos') ||
-    pathname.startsWith('/images')
-  ) {
-    return NextResponse.next();
-  }
 
   // Check if the requested path starts with API auth prefix
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
@@ -64,6 +52,19 @@ export default async function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
+/**
+ * config Matcher für die Next.js Middleware
+ * @typedef {Object} MiddlewareConfig
+ * @property {string[]} matcher - Array von Pfad-Mustern, auf die die Middleware angewendet wird
+ *
+ * @example
+ * Die Middleware wird angewendet auf:
+ * - /dashboard
+ * - /profile
+ * - /settings
+ */
 export const config = {
-  matcher: ['/((?!api/auth|_next/static|_next/image|favicon.ico).*)'],
+  matcher: [
+    '/((?!api/auth|_next/static|_next/image|videos|images|favicon.ico).*)',
+  ],
 };
