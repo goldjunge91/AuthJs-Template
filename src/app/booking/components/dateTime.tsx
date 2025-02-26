@@ -41,7 +41,7 @@ const CACHE_TTL = 30 * 60 * 1000;
 const MIN_BOOKING_HOURS_IN_ADVANCE = 12;
 
 // Anzahl der Tage, die im Voraus geladen werden sollen
-const PRELOAD_DAYS = 5;
+const DAYS_TO_LOAD = 14;
 
 export function DateTimeSelection() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
@@ -56,9 +56,11 @@ export function DateTimeSelection() {
 
   // Clientseitiger Cache für Zeitslots
   const [slotsCache, setSlotsCache] = useState<SlotCache>({});
+  // Flag, ob die Batch-Daten bereits geladen wurden
+  const [batchDataLoaded, setBatchDataLoaded] = useState(false);
 
   const today = startOfToday();
-  const maxDate = addDays(today, 14);
+  const maxDate = addDays(today, DAYS_TO_LOAD);
 
   // Hilfsfunktion zum Formatieren des Datums als Schlüssel für den Cache
   const getDateKey = useCallback((date: Date) => {
@@ -93,59 +95,49 @@ export function DateTimeSelection() {
     async (date: Date) => {
       if (!date) return;
 
-      setIsLoading(true);
-      setCalendarError(null);
       const dateKey = getDateKey(date);
 
+      // Prüfe, ob wir gültige Cache-Daten haben, ohne den Loading-Zustand zu ändern
+      const cachedData = slotsCache[dateKey];
+      const now = Date.now();
+
+      if (cachedData && now - cachedData.timestamp < CACHE_TTL) {
+        console.log('Verwende gecachte Zeitslots für:', dateKey);
+        setAvailableSlots(cachedData.slots);
+        return;
+      }
+
+      // Nur wenn wir tatsächlich laden müssen, setzen wir den Loading-Zustand
+      setIsLoading(true);
+      setCalendarError(null);
+
+      console.log('Rufe verfügbare Zeitslots ab für:', dateKey);
+
+      // Setze verfügbare Slots zurück, während wir neue laden
+      setAvailableSlots([]);
+
       try {
-        // Prüfe, ob wir gültige Cache-Daten haben
-        const cachedData = slotsCache[dateKey];
-        const now = Date.now();
-
-        if (cachedData && now - cachedData.timestamp < CACHE_TTL) {
-          console.log('Verwende gecachte Zeitslots für:', dateKey);
-          setAvailableSlots(cachedData.slots);
-          setIsLoading(false);
-          return;
-        }
-
-        console.log('Rufe verfügbare Zeitslots ab für:', dateKey);
-
-        // Setze verfügbare Slots zurück, während wir neue laden
-        setAvailableSlots([]);
-
         // Timeout für die API-Anfrage (10 Sekunden)
-        const timeoutPromise = new Promise<Response>((_, reject) =>
-          setTimeout(
-            () =>
-              reject(new Error('Zeitüberschreitung bei der Kalenderabfrage')),
-            10000,
-          ),
-        );
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         try {
           // Eigentliche Anfrage mit dem ISO-String des Datums
-          const fetchPromise = fetch(
+          const response = await fetch(
             `/api/calendar/check-availability?date=${date.toISOString()}`,
             {
               method: 'GET',
-              headers: {
-                Accept: 'application/json',
-              },
+              headers: { Accept: 'application/json' },
+              signal: controller.signal,
             },
           );
 
-          // Verwende das Ergebnis der schnelleren Promise (entweder Antwort oder Timeout)
-          const response = (await Promise.race([
-            fetchPromise,
-            timeoutPromise,
-          ])) as Response;
+          clearTimeout(timeoutId);
 
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({
               error: `HTTP Fehler ${response.status}`,
             }));
-            console.error('API-Antwort nicht erfolgreich:', errorData);
             throw new Error(
               errorData.error ||
                 'Fehler beim Abrufen der verfügbaren Zeitslots',
@@ -164,8 +156,7 @@ export function DateTimeSelection() {
 
           console.log(`${validSlots.length} gültige Slots vom Server erhalten`);
 
-          // Zeige alle Slots, auch die nicht verfügbaren, um dem Benutzer zu zeigen,
-          // welche Zeitslots belegt sind
+          // Zeige alle Slots, auch die nicht verfügbaren
           setAvailableSlots(validSlots);
 
           // Speichere Daten im Cache
@@ -177,26 +168,16 @@ export function DateTimeSelection() {
             },
           }));
         } catch (fetchError: unknown) {
-          console.error('Netzwerkfehler:', fetchError);
+          clearTimeout(timeoutId);
 
-          // Detaillierte Fehlerdiagnose
           if (
-            fetchError &&
-            typeof fetchError === 'object' &&
-            'name' in fetchError &&
-            'message' in fetchError &&
-            fetchError.name === 'TypeError' &&
-            fetchError.message === 'Failed to fetch'
+            fetchError instanceof DOMException &&
+            fetchError.name === 'AbortError'
           ) {
-            console.error(
-              'Verbindungsproblem: Der Server ist möglicherweise nicht erreichbar',
-            );
-            setCalendarError(
-              'Der Kalender-Server ist nicht erreichbar. Bitte überprüfen Sie Ihre Internetverbindung.',
-            );
-          } else {
-            throw fetchError; // Weitergeben an den äußeren catch-Block
+            throw new Error('Zeitüberschreitung bei der Kalenderabfrage');
           }
+
+          throw fetchError;
         }
       } catch (error) {
         console.error('Fehler beim Abrufen der Zeitslots:', error);
@@ -205,7 +186,7 @@ export function DateTimeSelection() {
             ? error.message
             : 'Unbekannter Fehler bei der Kalenderabfrage',
         );
-        // Bei Fehler: Leeres Array setzen - keine Fallbacks!
+        // Bei Fehler: Leeres Array setzen
         setAvailableSlots([]);
       } finally {
         setIsLoading(false);
@@ -213,6 +194,170 @@ export function DateTimeSelection() {
     },
     [slotsCache, getDateKey, ensureArray],
   );
+
+  // Funktion zum Abrufen der verfügbaren Zeitslots für mehrere Tage auf einmal
+  const fetchBatchAvailability = useCallback(async () => {
+    setIsLoading(true);
+    setCalendarError(null);
+
+    try {
+      console.log('Optimierte Batch-Abfrage für mehrere Tage...');
+
+      // Wir laden nur die nächsten 5 Tage sofort, um die Antwortzeit zu verbessern
+      const initialDaysToLoad = 5;
+      const now = Date.now();
+      const newCache: SlotCache = {};
+
+      // Lade die ersten Tage parallel
+      const initialDates = Array.from({ length: initialDaysToLoad }, (_, i) =>
+        addDays(today, i),
+      );
+
+      // Erstelle ein Array von Promises für die ersten Tage
+      const initialPromises = initialDates.map(async (date) => {
+        try {
+          const dateKey = getDateKey(date);
+          const response = await fetch(
+            `/api/calendar/check-availability?date=${date.toISOString()}`,
+            {
+              method: 'GET',
+              headers: { Accept: 'application/json' },
+            },
+          );
+
+          if (!response.ok) {
+            console.error(
+              `Fehler beim Laden von ${dateKey}: HTTP ${response.status}`,
+            );
+            return null;
+          }
+
+          const data = await response.json();
+          if (data.success === false) {
+            console.error(`API-Fehler für ${dateKey}: ${data.error}`);
+            return null;
+          }
+
+          return { dateKey, slots: ensureArray(data.availableSlots) };
+        } catch (error) {
+          console.error(`Fehler beim Laden von ${getDateKey(date)}:`, error);
+          return null;
+        }
+      });
+
+      // Warte auf alle initialen Anfragen
+      const results = await Promise.allSettled(initialPromises);
+
+      // Verarbeite die Ergebnisse
+      results.forEach((result) => {
+        if (result.status === 'fulfilled' && result.value) {
+          const { dateKey, slots } = result.value;
+          newCache[dateKey] = {
+            slots,
+            timestamp: now,
+          };
+        }
+      });
+
+      console.log(
+        `Erste ${initialDaysToLoad} Tage geladen, aktualisiere Cache...`,
+      );
+      setSlotsCache((prevCache) => ({ ...prevCache, ...newCache }));
+      setBatchDataLoaded(true);
+
+      // Wenn ein Datum ausgewählt ist, zeige die Slots für dieses Datum an
+      if (selectedDate) {
+        const dateKey = getDateKey(selectedDate);
+        if (newCache[dateKey]) {
+          setAvailableSlots(newCache[dateKey].slots);
+        }
+      }
+
+      // Lade die restlichen Tage im Hintergrund mit reduzierter Parallelität
+      setTimeout(() => {
+        const loadRemainingDays = async () => {
+          const remainingDates = Array.from(
+            { length: DAYS_TO_LOAD - initialDaysToLoad },
+            (_, i) => addDays(today, i + initialDaysToLoad),
+          );
+
+          // Lade die restlichen Tage in Gruppen von 3, um die Serverlast zu reduzieren
+          const chunkSize = 3;
+          for (let i = 0; i < remainingDates.length; i += chunkSize) {
+            const chunk = remainingDates.slice(i, i + chunkSize);
+
+            // Erstelle Promises für die aktuelle Gruppe
+            const chunkPromises = chunk.map(async (date) => {
+              try {
+                const dateKey = getDateKey(date);
+                const response = await fetch(
+                  `/api/calendar/check-availability?date=${date.toISOString()}`,
+                  {
+                    method: 'GET',
+                    headers: { Accept: 'application/json' },
+                  },
+                );
+
+                if (!response.ok) return null;
+
+                const data = await response.json();
+                if (data.success === false) return null;
+
+                return { dateKey, slots: ensureArray(data.availableSlots) };
+              } catch (error) {
+                console.error(
+                  `Fehler beim Laden von ${getDateKey(date)}:`,
+                  error,
+                );
+                return null;
+              }
+            });
+
+            // Warte auf die aktuelle Gruppe
+            const chunkResults = await Promise.allSettled(chunkPromises);
+
+            // Aktualisiere den Cache für diese Gruppe
+            const newChunkCache: SlotCache = {};
+            chunkResults.forEach((result) => {
+              if (result.status === 'fulfilled' && result.value) {
+                const { dateKey, slots } = result.value;
+                newChunkCache[dateKey] = {
+                  slots,
+                  timestamp: Date.now(), // Aktueller Zeitstempel
+                };
+              }
+            });
+
+            // Aktualisiere den Cache
+            if (Object.keys(newChunkCache).length > 0) {
+              setSlotsCache((prevCache) => ({
+                ...prevCache,
+                ...newChunkCache,
+              }));
+            }
+
+            // Kurze Pause zwischen den Gruppen
+            await new Promise((resolve) => setTimeout(resolve, 500));
+          }
+
+          console.log(`Alle ${DAYS_TO_LOAD} Tage wurden geladen`);
+        };
+
+        loadRemainingDays().catch((error) => {
+          console.error('Fehler beim Laden der restlichen Tage:', error);
+        });
+      }, 1000);
+    } catch (error) {
+      console.error('Fehler beim Abrufen der Batch-Verfügbarkeit:', error);
+      setCalendarError(
+        error instanceof Error
+          ? error.message
+          : 'Unbekannter Fehler bei der Kalenderabfrage',
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [today, selectedDate, getDateKey, ensureArray]);
 
   // Cache invalidieren, wenn er zu alt wird
   useEffect(() => {
@@ -242,63 +387,59 @@ export function DateTimeSelection() {
     (date: Date | undefined) => {
       setSelectedDate(date);
       if (date) {
-        fetchAvailableSlots(date);
+        const dateKey = getDateKey(date);
+        // Wenn wir bereits Daten im Cache haben, verwende diese
+        if (slotsCache[dateKey]) {
+          setAvailableSlots(slotsCache[dateKey].slots);
+        } else {
+          // Ansonsten lade die Daten
+          fetchAvailableSlots(date);
+        }
       } else {
         setAvailableSlots([]);
         setCalendarError(null);
       }
     },
-    [fetchAvailableSlots],
+    [fetchAvailableSlots, slotsCache, getDateKey],
   );
+
+  // Lade Batch-Daten beim ersten Laden der Komponente
+  useEffect(() => {
+    if (!batchDataLoaded) {
+      fetchBatchAvailability().catch(() => {
+        console.log('Batch-Laden fehlgeschlagen, verwende Einzelabfragen');
+        // Wenn das Batch-Laden fehlschlägt, lade trotzdem das aktuelle Datum
+        if (selectedDate) {
+          fetchAvailableSlots(selectedDate);
+        }
+      });
+    }
+  }, [
+    batchDataLoaded,
+    fetchBatchAvailability,
+    selectedDate,
+    fetchAvailableSlots,
+  ]);
 
   // Automatisch das aktuelle Datum laden, wenn die Komponente geladen wird
   useEffect(() => {
-    if (selectedDate) {
-      fetchAvailableSlots(selectedDate);
-    }
-  }, [selectedDate, fetchAvailableSlots]);
-
-  // Proaktives Laden von Terminen für die nächsten Tage
-  useEffect(() => {
-    const preloadFutureDates = async () => {
-      console.log(
-        `🔄 Lade proaktiv Termine für die nächsten ${PRELOAD_DAYS} Tage...`,
-      );
-
-      // Starte mit dem heutigen Tag
-      const startDate = startOfToday();
-
-      // Lade die Termine für die nächsten PRELOAD_DAYS Tage
-      for (let i = 0; i < PRELOAD_DAYS; i++) {
-        const dateToLoad = addDays(startDate, i);
-        const dateKey = getDateKey(dateToLoad);
-
-        // Prüfe, ob die Daten bereits im Cache sind
-        const cachedData = slotsCache[dateKey];
-        const now = Date.now();
-
-        if (!cachedData || now - cachedData.timestamp >= CACHE_TTL) {
-          console.log(`🔄 Proaktives Laden für ${dateKey}...`);
-          // Warte kurz zwischen den Anfragen, um den Server nicht zu überlasten
-          await new Promise((resolve) => setTimeout(resolve, 500));
-          fetchAvailableSlots(dateToLoad).catch((err) => {
-            console.error(`Fehler beim proaktiven Laden für ${dateKey}:`, err);
-          });
-        } else {
-          console.log(
-            `✅ Daten für ${dateKey} bereits im Cache, überspringe...`,
-          );
-        }
+    if (selectedDate && !isLoading) {
+      const dateKey = getDateKey(selectedDate);
+      if (slotsCache[dateKey]) {
+        setAvailableSlots(slotsCache[dateKey].slots);
+      } else if (batchDataLoaded) {
+        // Wenn die Batch-Daten geladen wurden, aber das ausgewählte Datum nicht im Cache ist
+        fetchAvailableSlots(selectedDate);
       }
-    };
-
-    // Starte das proaktive Laden nach einer kurzen Verzögerung
-    const timer = setTimeout(() => {
-      preloadFutureDates();
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [fetchAvailableSlots, getDateKey, slotsCache]);
+    }
+  }, [
+    selectedDate,
+    slotsCache,
+    getDateKey,
+    batchDataLoaded,
+    fetchAvailableSlots,
+    isLoading,
+  ]);
 
   // Hilfsfunktion zum Gruppieren der Zeitslots nach Stunden
   const groupTimeSlotsByHour = useCallback(
@@ -368,7 +509,8 @@ export function DateTimeSelection() {
               />
             </CardContent>
             <CardFooter className='text-sm text-muted-foreground'>
-              Termine können bis zu 14 Tage im Voraus gebucht werden.
+              Termine können bis zu {DAYS_TO_LOAD} Tage im Voraus gebucht
+              werden.
             </CardFooter>
           </Card>
         </div>
