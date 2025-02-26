@@ -42,7 +42,7 @@ export default function MobileMenu({
                   key={item.href}
                   href={item.href}
                   onClick={closeMenu}
-                  className='block w-full rounded-lg px-4 py-3 text-lg text-gray-700 transition-colors hover:bg-gray-50 hover:text-primary-500 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-primary-400'
+                  className='hover:text-primary-500 dark:hover:text-primary-400 block w-full rounded-lg px-4 py-3 text-lg text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800'
                 >
                   {item.label}
                 </Link>
