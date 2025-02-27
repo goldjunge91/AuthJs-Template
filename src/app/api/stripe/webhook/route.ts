@@ -64,7 +64,8 @@ export async function POST(request: Request) {
           .update(bookings)
           .set({
             status: 'confirmed',
-            updatedAt: Date.now(),
+            // updatedAt: Date.now(),
+            updatedAt: new Date().toISOString(),
           })
           .where(eq(bookings.stripeSessionId, session.id));
 
@@ -105,7 +106,8 @@ export async function POST(request: Request) {
                 .update(bookings)
                 .set({
                   calendarEventId: calendarData.data.id,
-                  updatedAt: Date.now(),
+                  // updatedAt: Date.now(),
+                  updatedAt: new Date().toISOString(),
                 })
                 .where(eq(bookings.stripeSessionId, session.id));
             }
@@ -123,7 +125,8 @@ export async function POST(request: Request) {
           .update(bookings)
           .set({
             status: 'expired',
-            updatedAt: Date.now(),
+            // updatedAt: Date.now(),
+            updatedAt: new Date().toISOString(),
           })
           .where(eq(bookings.stripeSessionId, session.id));
         break;

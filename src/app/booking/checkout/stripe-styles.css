@@ -1,0 +1,94 @@
+.checkout {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  background-color: white;
+}
+
+.checkout-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.checkout-description {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.checkout-price {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: #6772e5;
+}
+
+.checkout-product-image {
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.checkout-button {
+  background-color: #6772e5;
+  color: white;
+  border: none;
+  border-radius: 28px;
+  padding: 12px 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.checkout-button:hover {
+  background-color: #5469d4;
+  transform: translateY(-1px);
+  box-shadow:
+    0 7px 14px rgba(50, 50, 93, 0.1),
+    0 3px 6px rgba(0, 0, 0, 0.08);
+}
+
+.grey-circle {
+  background-color: #f6f9fc;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+}
+
+.purple-circle {
+  background-color: #6772e5;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon {
+  width: 14px;
+  height: 14px;
+}
+
+.text-container {
+  display: flex;
+  align-items: center;
+}
+
+.text {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}

@@ -6,30 +6,32 @@ export default function Hero() {
   return (
     <motion.div
       animate={{ opacity: 1, y: 0 }}
-      className='mb-16 pt-24 text-center'
+      className='mb-16 overflow-hidden pt-24 text-center'
       initial={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.8 }}
     >
-      <motion.span
-        animate={{
-          scale: [1, 1.05, 1],
-          x: [0, 2, 0],
-        }}
-        className='mb-2 inline-block text-lg font-semibold text-blue-500'
-        transition={{
-          repeat: Number.POSITIVE_INFINITY,
-          duration: 2,
-          ease: 'easeInOut',
-        }}
-      >
-        <span aria-label='sparkles' role='img'>
-          ✨
-        </span>{' '}
-        Premium Fahrzeugpflege
-      </motion.span>
+      <div className='relative mx-auto mb-2 h-10 overflow-hidden'>
+        <motion.span
+          animate={{
+            scale: [1, 1.05, 1],
+            x: [0, 2, 0],
+          }}
+          className='mb-2 inline-block text-lg font-semibold text-blue-500'
+          transition={{
+            repeat: Number.POSITIVE_INFINITY,
+            duration: 2,
+            ease: 'easeInOut',
+          }}
+        >
+          <span aria-label='sparkles' role='img'>
+            ✨
+          </span>{' '}
+          Premium Fahrzeugpflege
+        </motion.span>
+      </div>
 
       <h1 className='mb-6 text-6xl font-bold tracking-tight text-gray-900 dark:text-white sm:mb-6 sm:text-3xl md:text-5xl lg:text-6xl'>
-        <span className='bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent'>
+        <span className='overflow-hidden bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent'>
           Unsere Pakete
         </span>
       </h1>

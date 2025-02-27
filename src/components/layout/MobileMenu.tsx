@@ -32,7 +32,6 @@ export default function MobileMenu({
       >
         {open ? <X className='h-6 w-6' /> : <Menu className='h-6 w-6' />}
       </button>
-
       {open && (
         <div className='fixed inset-x-0 top-20 z-40 bg-white/95 shadow-lg backdrop-blur-lg dark:bg-gray-900/95'>
           <div className='bg-white shadow-lg dark:bg-gray-800'>
@@ -42,7 +41,8 @@ export default function MobileMenu({
                   key={item.href}
                   href={item.href}
                   onClick={closeMenu}
-                  className='hover:text-primary-500 dark:hover:text-primary-400 block w-full rounded-lg px-4 py-3 text-lg text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800'
+                  // className='block w-full rounded-lg px-4 py-3 text-lg text-gray-700 transition-colors hover:bg-gray-50 hover:text-primary-500 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-primary-400'>
+                  className='block w-full rounded-lg px-4 py-3 text-lg text-gray-700 transition-colors hover:bg-gray-50 hover:text-primary-500 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-primary-400'
                 >
                   {item.label}
                 </Link>

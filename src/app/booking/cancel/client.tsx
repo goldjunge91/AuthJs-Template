@@ -8,13 +8,13 @@ export function CancelBookingClient() {
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const sessionId =
+  const session_id =
     typeof window !== 'undefined'
-      ? new URLSearchParams(window.location.search).get('sessionId')
+      ? new URLSearchParams(window.location.search).get('session_id')
       : null;
 
   useEffect(() => {
-    if (!sessionId) {
+    if (!session_id) {
       setError('Keine Buchungs-ID gefunden');
       setLoading(false);
       return;
@@ -23,7 +23,7 @@ export function CancelBookingClient() {
     async function updateBookingStatus() {
       try {
         const response = await fetch(
-          `/api/bookings/cancel?sessionId=${sessionId}`,
+          `/api/bookings/cancel?session_id=${session_id}`,
           {
             method: 'POST',
           },
@@ -42,7 +42,7 @@ export function CancelBookingClient() {
     }
 
     updateBookingStatus();
-  }, [sessionId, router]);
+  }, [session_id, router]);
 
   const handleCancelBooking = async () => {
     setLoading(true);

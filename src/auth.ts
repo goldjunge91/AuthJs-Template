@@ -21,6 +21,7 @@ import {
 } from '@/db/schema';
 import { cookies } from 'next/headers';
 import Passkey from 'next-auth/providers/passkey';
+import { MemoryAdapter } from '@/lib/memory-adapter';
 
 class InvalidCredentialsError extends AuthError {
   code = 'invalid-credentials';
@@ -32,17 +33,24 @@ class OauthError extends AuthError {
   message = 'Please use Social Login to continue';
 }
 
+// Use environment variable to decide which adapter to use
+const useMemoryAdapter = process.env.USE_MEMORY_ADAPTER === 'true';
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   debug: process.env.NODE_ENV !== 'production',
   trustHost: true,
   experimental: { enableWebAuthn: true },
-  adapter: DrizzleAdapter(db, {
-    usersTable: users,
-    accountsTable: accounts,
-    sessionsTable: sessions,
-    verificationTokensTable: verificationTokens,
-    authenticatorsTable: authenticators,
-  }),
+  // Choose adapter based on environment
+  adapter: useMemoryAdapter
+    ? MemoryAdapter()
+    : DrizzleAdapter(db, {
+        usersTable: users,
+        accountsTable: accounts,
+        sessionsTable: sessions,
+        verificationTokensTable: verificationTokens,
+        authenticatorsTable: authenticators,
+      }),
+
   providers: [
     Passkey({
       enableConditionalUI: true,
@@ -53,6 +61,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }),
     }),
     Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      authorization: { params: { prompt: 'consent', access_type: 'offline' } },
       async profile(profile) {
         return {
           id: profile.sub,
@@ -124,6 +135,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
+  // In your NextAuth configuration, add:
+  cookies: {
+    sessionToken: {
+      name: 'fuck-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+  },
   callbacks: {
     async signIn({ user, credentials, account }) {
       const cookieStore = await cookies();
@@ -134,6 +157,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return true;
         }
       }
+
       // check if account is already linked or not after user is authenticated
       if (sessionToken?.value) {
         if (account) {
@@ -147,7 +171,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
       }
       // @ts-ignore
-      if (user.isTotpEnabled) {
+      if (user.isTotpEnabled1) {
         const cookieStore = await cookies();
         cookieStore.set({
           name: 'authjs.two-factor',
@@ -160,6 +184,39 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return true;
     },
+    //   authorized({ auth, request: { nextUrl } }) {
+    //     const isLoggedIn = !!auth?.user;
+    //     const paths = ['/profile', '/dashboard'];
+    //     const isProtected = paths.some((path) =>
+    //       nextUrl.pathname.startsWith(path),
+    //     );
+
+    //     const publicPath = ['/sign-up'];
+    //     const isPublic = publicPath.some((path) =>
+    //       nextUrl.pathname.startsWith(path),
+    //     );
+    //     if (isPublic && isLoggedIn) {
+    //       return Response.redirect(new URL('/profile', nextUrl.origin));
+    //     }
+
+    //     if (isProtected && !isLoggedIn) {
+    //       const redirectUrl = new URL('/sign-in', nextUrl.origin);
+    //       redirectUrl.searchParams.append('callbackUrl', nextUrl.href);
+    //       return Response.redirect(redirectUrl);
+    //     }
+    //     // if (isPublic && isLoggedIn) {
+    //     //   return Response.redirect(new URL('/', nextUrl.origin));
+    //     // }
+
+    //     if (isProtected && !isLoggedIn) {
+    //       // Make sure this matches your page configuration
+    //       const redirectUrl = new URL('/sign-in', nextUrl.origin);
+    //       redirectUrl.searchParams.append('callbackUrl', nextUrl.href);
+    //       return Response.redirect(redirectUrl);
+    //     }
+    //     return true;
+    //   },
+    // },
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
       const paths = ['/profile', '/dashboard'];
@@ -182,15 +239,30 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return true;
     },
+    // jwt: async ({ token }) => {
+    //   const user = await getUserById(token.sub!);
+    //   if (user) {
+    //     token.user = user;
+    //     token.role = user.role;
+    //     return token;
+    //   } else {
+    //     return null;
+    //   }
+    // },
     jwt: async ({ token }) => {
-      const user = await getUserById(token.sub!);
-      if (user) {
-        token.user = user;
-        token.role = user.role;
+      try {
+        const user = await getUserById(token.sub!);
+        if (user) {
+          token.user = user;
+          token.role = user.role;
+          return token;
+        }
+      } catch (error) {
+        console.error('Database error during auth:', error);
+        // Return existing token to prevent complete auth failure
         return token;
-      } else {
-        return null;
       }
+      return null;
     },
     session: async ({ session, token }) => {
       if (token) {
@@ -204,11 +276,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
   },
-  session: { strategy: 'jwt', maxAge: 0 * 24 * 60 * 60 }, // ? tage * stunden * minuten * sekunden
-  jwt: { encode, decode, maxAge: 0 * 24 * 60 * 60 },
+  session: { strategy: 'jwt', maxAge: 7 * 24 * 60 * 60 }, // 7 days
+  jwt: { encode, decode, maxAge: 7 * 24 * 60 * 60 }, // 7 days
   secret: process.env.AUTH_SECRET,
   pages: {
     signIn: '/sign-in',
     error: '/error',
+    signOut: '/sign-out',
   },
 });

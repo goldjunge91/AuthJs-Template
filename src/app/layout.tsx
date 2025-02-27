@@ -1,15 +1,13 @@
 import React from 'react';
 import type { Metadata } from 'next/types';
 import './globals.css';
-import { ThemeProvider } from 'next-themes';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { Provider } from '@/providers/provider';
 import { cn } from '@/lib/utils';
 import { Inter, Rubik } from 'next/font/google';
 import { Toaster } from '@/components/ui/sonner';
 import { Footer } from '@/components/layout/footer';
 import CookieConsentComponent from '@/utils/cookies/CookieConsent';
 import Navbar from '@/components/layout/Navbar';
-import { InitAnonymousUser } from '@/components/init-anonymous-user';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -36,27 +34,24 @@ export default async function RootLayout({
     <html lang='de' suppressHydrationWarning>
       <body
         className={cn(
-          'dark:background mx-auto h-screen',
+          // 'dark:background mx-auto h-screen',
+          'dark:background mx-auto flex min-h-screen flex-col overflow-hidden',
+
           inter.variable,
           rubik.variable,
         )}
       >
-        <ThemeProvider
-          attribute='class'
-          defaultTheme='dark'
-          enableSystem={false}
-          disableTransitionOnChange
-        >
+        <Provider>
           <Navbar />
-          <main>
-            <InitAnonymousUser />
+          {/* <main className='pt-16'> */}
+          <main className='flex-grow pb-16 pt-16 sm:pb-20'>
+            {/* <main> */}
             {children}
           </main>
           <Toaster />
-          <ThemeToggle />
           <CookieConsentComponent />
           <Footer />
-        </ThemeProvider>
+        </Provider>
       </body>
     </html>
   );

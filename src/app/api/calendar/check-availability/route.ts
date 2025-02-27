@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAvailableTimeSlotsForDay } from '@/actions/booking/calendar-actions';
-import { format, parseISO } from 'date-fns';
+import { parseISO } from 'date-fns';
 
 export async function GET(request: NextRequest) {
   try {

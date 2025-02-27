@@ -11,10 +11,10 @@ export function SuccessBookingClient() {
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const sessionId = searchParams.get('session_id');
+  const session_id = searchParams.get('session_id');
 
   useEffect(() => {
-    if (!sessionId) {
+    if (!session_id) {
       setError('Keine Buchungs-ID gefunden');
       setLoading(false);
       return;
@@ -23,7 +23,7 @@ export function SuccessBookingClient() {
     async function fetchBookingDetails() {
       try {
         const response = await fetch(
-          `/api/bookings/details?sessionId=${sessionId}`,
+          `/api/bookings/details?session_id=${session_id}`,
         );
 
         if (!response.ok) {
@@ -41,7 +41,7 @@ export function SuccessBookingClient() {
     }
 
     fetchBookingDetails();
-  }, [sessionId]);
+  }, [session_id]);
 
   if (isLoading) {
     return <div>Lade Buchungsdetails...</div>;
@@ -91,7 +91,7 @@ export function SuccessBookingClient() {
       {bookingDetails && (
         <div className='mb-6 rounded border border-gray-200 p-4'>
           <h3 className='mb-2 font-medium'>Buchungsdetails:</h3>
-          <p>Buchungs-ID: {bookingDetails.id || sessionId}</p>
+          <p>Buchungs-ID: {bookingDetails.id || session_id}</p>
           {/* Weitere Buchungsdetails hier anzeigen */}
         </div>
       )}

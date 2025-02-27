@@ -29,9 +29,9 @@ export async function POST(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const sessionId = searchParams.get('session_id');
+  const session_id = searchParams.get('session_id');
 
-  if (!sessionId) {
+  if (!session_id) {
     return NextResponse.json({ error: 'Session ID fehlt' }, { status: 400 });
   }
 
@@ -41,17 +41,18 @@ export async function POST(request: Request) {
       .update(bookings)
       .set({
         status: 'cancelled',
-        updatedAt: new Date(),
+        // updatedAt: Date.now(),
+        updatedAt: new Date().toISOString(),
       })
-      .where(eq(bookings.stripeSessionId, sessionId));
+      .where(eq(bookings.stripeSessionId, session_id));
 
     // Optional: Cancel the Stripe session if it's still active
     try {
-      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      const session = await stripe.checkout.sessions.retrieve(session_id);
 
       if (session.status === 'open') {
         // For Stripe, we can't actually cancel a session, but we can expire it
-        await stripe.checkout.sessions.expire(sessionId);
+        await stripe.checkout.sessions.expire(session_id);
       }
     } catch (stripeError) {
       console.error('Fehler beim Stornieren der Stripe-Session:', stripeError);

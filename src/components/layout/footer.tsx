@@ -1,7 +1,8 @@
 import { History, Mail, MapPin, Phone } from 'lucide-react';
 export function Footer() {
   return (
-    <footer className='z-100 relative mt-auto w-full bg-transparent text-foreground'>
+    // <footer className='z-100 relative mt-auto w-full bg-transparent text-foreground'>
+    <footer className='mt-auto w-full border-t bg-background px-4 py-6 text-foreground'>
       <div className='xs:px-6 xs:py-10 mx-auto max-w-7xl px-4 py-8'>
         <div className='xs:grid-cols-2 grid grid-cols-1 gap-8 text-center md:grid-cols-3'>
           {/* First column - Contact info */}

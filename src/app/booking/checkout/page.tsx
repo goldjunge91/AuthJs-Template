@@ -20,7 +20,7 @@ import { useSession } from 'next-auth/react';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  useSession();
 
   const {
     vehicleClass,

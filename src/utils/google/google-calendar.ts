@@ -22,13 +22,27 @@ const CONFIG = {
 // Variable, um OpenSSL-Fehler zu verfolgen und Fallbacks zu aktivieren
 let useApiKeyFallback = false;
 
+// Globaler Cache für den Calendar-Client
+let calendarClientCache: any = null;
+let lastClientInitTime = 0;
+const CLIENT_CACHE_TTL = 1000 * 60 * 30; // 30 Minuten Client-Cache
+
 /**
  * Initialisiert und gibt einen Google Calendar-Client zurück
  * Versucht verschiedene Authentifizierungsmethoden in dieser Reihenfolge:
  * 1. JWT (Service Account) - voller Zugriff
  * 2. API Key - nur Lesezugriff
+ *
+ * Implementiert Client-Caching, um wiederholte Initialisierungen zu vermeiden
  */
 export async function getGoogleCalendar() {
+  // Prüfe, ob ein Client im Cache ist und noch gültig ist
+  const now = Date.now();
+  if (calendarClientCache && now - lastClientInitTime < CLIENT_CACHE_TTL) {
+    // Verwende den gecachten Client
+    return calendarClientCache;
+  }
+
   console.log('Initialisiere Google Calendar Client...');
 
   if (!CONFIG.CALENDAR_ID) {
@@ -40,6 +54,11 @@ export async function getGoogleCalendar() {
     try {
       console.log('Versuche JWT-Authentifizierung (Service Account)...');
       const calendar = await getGoogleCalendarWithJWT();
+
+      // Speichere den Client im Cache
+      calendarClientCache = calendar;
+      lastClientInitTime = now;
+
       return calendar;
     } catch (error: unknown) {
       console.warn(
@@ -58,7 +77,13 @@ export async function getGoogleCalendar() {
   // Fallback auf API Key (nur Lesezugriff)
   if (CONFIG.API_KEY) {
     console.log('Verwende API-Key Authentifizierung (nur Lesezugriff)...');
-    return getGoogleCalendarWithApiKey();
+    const calendar = getGoogleCalendarWithApiKey();
+
+    // Speichere den Client im Cache
+    calendarClientCache = calendar;
+    lastClientInitTime = now;
+
+    return calendar;
   }
 
   throw new Error(

@@ -1,0 +1,233 @@
+{
+  "info": {
+    "name": "Stripe Integration Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Tests für die Stripe-Integration und dynamische Routen"
+  },
+  "item": [
+    {
+      "name": "1. Checkout Session erstellen",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-api-key",
+            "value": "{{API_TEST_KEY}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"vehicleClass\": \"SUV\",\n  \"selectedPackage\": \"Premium\",\n  \"additionalOptions\": [\"Innenreinigung\", \"Polsterreinigung\"],\n  \"dateTime\": \"{{$isoTimestamp}}\",\n  \"customerDetails\": {\n    \"firstName\": \"Test\",\n    \"lastName\": \"Kunde\",\n    \"email\": \"test@example.com\",\n    \"phone\": \"+49123456789\",\n    \"street\": \"Teststraße\",\n    \"streetNumber\": \"123\",\n    \"city\": \"Teststadt\"\n  },\n  \"calculatedPrice\": {\n    \"basePrice\": 99.99,\n    \"additionalPrice\": 49.99,\n    \"totalPrice\": 149.98\n  },\n  \"duration\": 120\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/api/stripe/checkout",
+          "host": ["{{BASE_URL}}"],
+          "path": ["api", "stripe", "checkout"]
+        },
+        "description": "Erstellt eine neue Checkout-Session und speichert die Buchung in der Datenbank"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response has session_id and url\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('session_id');",
+              "    pm.expect(jsonData).to.have.property('url');",
+              "    ",
+              "    // Speichere die Session-ID für spätere Tests",
+              "    pm.environment.set(\"SESSION_ID\", jsonData.session_id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Buchungsdaten abrufen",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{API_TEST_KEY}}"
+          }
+        ],
+        "url": {
+          "raw": "{{BASE_URL}}/api/stripe/get-booking?session_id={{SESSION_ID}}",
+          "host": ["{{BASE_URL}}"],
+          "path": ["api", "stripe", "get-booking"],
+          "query": [
+            {
+              "key": "session_id",
+              "value": "{{SESSION_ID}}"
+            }
+          ]
+        },
+        "description": "Ruft die Buchungsdaten anhand der Session-ID ab"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response has booking data\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('dateTime');",
+              "    pm.expect(jsonData).to.have.property('totalDuration');",
+              "    pm.expect(jsonData).to.have.property('vehicleClass');",
+              "    pm.expect(jsonData).to.have.property('contactDetails');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Buchung stornieren",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{API_TEST_KEY}}"
+          }
+        ],
+        "url": {
+          "raw": "{{BASE_URL}}/api/stripe/cancel-booking?session_id={{SESSION_ID}}",
+          "host": ["{{BASE_URL}}"],
+          "path": ["api", "stripe", "cancel-booking"],
+          "query": [
+            {
+              "key": "session_id",
+              "value": "{{SESSION_ID}}"
+            }
+          ]
+        },
+        "description": "Storniert eine Buchung anhand der Session-ID"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response has success property\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('success');",
+              "    pm.expect(jsonData.success).to.be.true;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Webhook-Test (Simulation)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "stripe-signature",
+            "value": "{{STRIPE_WEBHOOK_SIGNATURE}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"evt_test_webhook\",\n  \"object\": \"event\",\n  \"api_version\": \"2023-10-16\",\n  \"type\": \"checkout.session.completed\",\n  \"data\": {\n    \"object\": {\n      \"id\": \"{{SESSION_ID}}\",\n      \"object\": \"checkout.session\",\n      \"status\": \"complete\",\n      \"metadata\": {\n        \"vehicleClass\": \"SUV\",\n        \"packageType\": \"Premium\",\n        \"additionalOptions\": \"[\\\"Innenreinigung\\\", \\\"Polsterreinigung\\\"]\",\n        \"dateTime\": \"{{$isoTimestamp}}\",\n        \"totalDuration\": \"120\",\n        \"contactDetails\": \"{\\\"firstName\\\":\\\"Test\\\",\\\"lastName\\\":\\\"Kunde\\\",\\\"email\\\":\\\"test@example.com\\\",\\\"phone\\\":\\\"+49123456789\\\",\\\"street\\\":\\\"Teststraße\\\",\\\"streetNumber\\\":\\\"123\\\",\\\"city\\\":\\\"Teststadt\\\"}\"\n      }\n    }\n  }\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/api/stripe/webhook",
+          "host": ["{{BASE_URL}}"],
+          "path": ["api", "stripe", "webhook"]
+        },
+        "description": "Simuliert einen Stripe-Webhook für eine abgeschlossene Checkout-Session"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Hinweis: Dieser Test wird in der Praxis fehlschlagen, da die Signatur nicht korrekt ist",
+              "// Er dient nur zur Dokumentation des Webhook-Formats",
+              "",
+              "pm.test(\"Response received\", function () {",
+              "    pm.response.to.not.be.error;",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Setze Umgebungsvariablen, falls nicht vorhanden",
+          "if (!pm.environment.get(\"BASE_URL\")) {",
+          "    pm.environment.set(\"BASE_URL\", \"http://localhost:3000\");",
+          "}",
+          "",
+          "if (!pm.environment.get(\"API_TEST_KEY\")) {",
+          "    pm.environment.set(\"API_TEST_KEY\", \"test-api-key\");",
+          "}",
+          "",
+          "// Setze einen Zeitstempel für die Buchung (1 Tag in der Zukunft)",
+          "const tomorrow = new Date();",
+          "tomorrow.setDate(tomorrow.getDate() + 1);",
+          "tomorrow.setHours(10, 0, 0, 0);",
+          "pm.environment.set(\"$isoTimestamp\", tomorrow.toISOString());"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "API_TEST_KEY",
+      "value": "test-api-key"
+    },
+    {
+      "key": "SESSION_ID",
+      "value": ""
+    },
+    {
+      "key": "STRIPE_WEBHOOK_SIGNATURE",
+      "value": "test-signature"
+    }
+  ]
+}

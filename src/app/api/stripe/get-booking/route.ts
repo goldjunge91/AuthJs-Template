@@ -10,28 +10,28 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 const API_KEY = process.env.API_TEST_KEY;
 // Hilfsfunktion zur Validierung des API-Keys
 async function validateApiKey(): Promise<boolean> {
-  const headersList = headers();
-  const apiKey = await (await headersList).get('x-api-key');
+  const headersList = await headers();
+  const apiKey = headersList.get('x-api-key');
 
   // Im Entwicklungsmodus oder mit gültigem API-Key fortfahren
   return process.env.NODE_ENV === 'development' || apiKey === API_KEY;
 }
 
 export async function GET(request: Request) {
-  // API-Key-Validierung
-  if (!validateApiKey()) {
+  // API-Key-Validierung - Fixed missing await
+  if (!(await validateApiKey())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const { searchParams } = new URL(request.url);
-  const sessionId = searchParams.get('session_id');
+  const session_id = searchParams.get('session_id');
 
-  if (!sessionId) {
+  if (!session_id) {
     return NextResponse.json({ error: 'Session ID fehlt' }, { status: 400 });
   }
 
   try {
-    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+    const session = await stripe.checkout.sessions.retrieve(session_id, {
       expand: ['line_items'],
     });
 
@@ -39,12 +39,17 @@ export async function GET(request: Request) {
       throw new Error('Keine Metadaten in der Session gefunden');
     }
 
+    // Added safer JSON parsing with error handling
     const bookingData = {
       dateTime: session.metadata.dateTime,
-      totalDuration: Number.parseInt(session.metadata.totalDuration),
+      totalDuration: Number.parseInt(session.metadata.totalDuration || '0'),
       vehicleClass: session.metadata.vehicleClass,
-      contactDetails: JSON.parse(session.metadata.contactDetails),
-      packages: JSON.parse(session.metadata.packages),
+      contactDetails: session.metadata.contactDetails
+        ? JSON.parse(session.metadata.contactDetails)
+        : {},
+      packages: session.metadata.packages
+        ? JSON.parse(session.metadata.packages)
+        : [],
     };
 
     return NextResponse.json(bookingData);

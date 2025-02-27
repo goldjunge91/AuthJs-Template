@@ -18,15 +18,17 @@ export default function PricingPackages() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const circles = [
-    { x: 20, y: 30, delay: 0 },
-    { x: 50, y: 20, delay: 5 },
-    { x: 80, y: 40, delay: 10 },
+    { x: 10, y: 1000, delay: 0 },
+    { x: 50, y: 20, delay: 2 },
+    { x: 80, y: 40, delay: 1.5 },
+    { x: 100, y: 60, delay: 2.5 },
+    { x: 0, y: 10, delay: 1 },
   ];
 
   return (
-    <div className='relative min-h-screen w-full bg-transparent dark:bg-transparent/95'>
+    <div className='relative min-h-screen w-full overflow-y-hidden bg-transparent dark:bg-transparent/95'>
       {/* Animated Background */}
-      <div className='absolute inset-0 overflow-x-auto'>
+      <div className='absolute inset-0 overflow-x-auto overflow-y-hidden'>
         {/* Grid pattern */}
         <div
           className='absolute inset-0 opacity-[0.15]'
@@ -40,7 +42,7 @@ export default function PricingPackages() {
         />
 
         {/* Animated circles */}
-        <div className='absolute inset-0'>
+        <div className='absolute inset-0 overflow-hidden overflow-y-hidden'>
           {circles.map((circle, i) => (
             <motion.div
               key={i}
@@ -49,13 +51,16 @@ export default function PricingPackages() {
                 y: [circle.y, circle.y + 20, circle.y],
                 scale: [0.8, 1.2, 0.8],
               }}
-              className='absolute rounded-full bg-emerald-400 opacity-80 blur-[50px] dark:bg-emerald-500'
+              // className='absolute rounded-full bg-emerald-400 opacity-100 blur-[0px] dark:bg-emerald-500'
+              // className='absolute rounded-full bg-emerald-400 opacity-80 ring-2 ring-red-500 ring-offset-4 blur-[50px]'
+              className='absolute rounded-full bg-emerald-400 opacity-80 ring-2 ring-red-500 ring-offset-4 blur-[50px]'
               initial={{ x: circle.x, y: circle.y, scale: 0.8 }}
               style={{
-                width: '40%',
-                height: '40%',
-                left: `${i * 30}%`,
-                top: `${i * 20}%`,
+                width: '300px', // Fixed pixel width
+                height: '300px', // Same as width to ensure circle
+                aspectRatio: '1/1', // Backup to ensure circle
+                left: `calc(${i * 30}% - 150px)`,
+                top: `calc(${i * 20}% - 150px)`,
               }}
               transition={{
                 repeat: Number.POSITIVE_INFINITY,
@@ -70,6 +75,7 @@ export default function PricingPackages() {
 
         {/* Gradient Overlay */}
         <div className='absolute inset-0 bg-gradient-to-b from-white/80 via-white/70 to-white/80 dark:from-black dark:via-black/95 dark:to-black/90' />
+        {/* <div className='absolute rounded-full bg-emerald-400 opacity-80 ring-2 ring-red-500 ring-offset-4 blur-[50px]' /> */}
       </div>
 
       {/* Content */}

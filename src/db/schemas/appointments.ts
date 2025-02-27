@@ -1,11 +1,5 @@
 import { sql } from 'drizzle-orm';
-import {
-  integer,
-  SQLiteColumn,
-  sqliteTable,
-  SQLiteTableWithColumns,
-  text,
-} from 'drizzle-orm/sqlite-core';
+import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 export const appointments = sqliteTable('appointments', {
   id: text('id')
