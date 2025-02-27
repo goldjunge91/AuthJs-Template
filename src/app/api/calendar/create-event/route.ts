@@ -50,26 +50,46 @@ export async function POST(request: Request) {
       );
     }
 
-    // Formatiere die Beschreibung
+    //     // Formatiere die Beschreibung
+    //     const description = `
+    // Fahrzeugklasse: ${vehicleClass}
+    // Pakete: ${selectedPackages.join(', ')}
+    // Dauer: ${duration} Minuten
+    // Kontakt: ${contactDetails.email} | ${contactDetails.phone}
+    // Name: ${contactDetails.firstName} ${contactDetails.lastName}
+    //     `.trim();
+    // Formatiere die Beschreibung mit allen wichtigen Details
     const description = `
-Fahrzeugklasse: ${vehicleClass}
-Pakete: ${selectedPackages.join(', ')}
-Dauer: ${duration} Minuten
-Kontakt: ${contactDetails.email} | ${contactDetails.phone}
-Name: ${contactDetails.firstName} ${contactDetails.lastName}
+    Fahrzeugklasse: ${vehicleClass}
+    Pakete: ${selectedPackages.join(', ')}
+    Dauer: ${duration} Minuten
+    
+    KUNDENKONTAKT:
+    Email: ${contactDetails.email} 
+    Telefon: ${contactDetails.phone}
+    Name: ${contactDetails.firstName} ${contactDetails.lastName}
+    Adresse: ${contactDetails.street} ${contactDetails.streetNumber}, ${contactDetails.city}
+    
+    TERMINDETAILS:
+    Datum: ${new Date(dateTime).toLocaleDateString('de-DE')}
+    Uhrzeit: ${new Date(dateTime).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
     `.trim();
 
     // Berechne die Endzeit
     const startTime = new Date(dateTime);
     const endTime = new Date(startTime.getTime() + duration * 60000);
-
+    // Erstelle den Kalendereintrag OHNE attendees
     // Erstelle den Kalendereintrag
     const calendar = await getGoogleCalendar();
     const event = await calendar.events.insert({
-      calendarId: process.env.AUTH_CALENDAR_ID || 'primary',
+      calendarId: process.env.AUTH_CALENDAR_ID || 'work',
       requestBody: {
-        summary: `Fahrzeugpflege: ${vehicleClass}`,
+        summary: `${contactDetails.firstName} ${contactDetails.lastName} ${vehicleClass}`,
         description,
+        location: `${contactDetails.street} ${contactDetails.streetNumber}, ${contactDetails.city}`,
+
+        // attendees: [{ email: contactDetails.email }], // This will work with Domain-Wide Delegation
+
         start: {
           dateTime: startTime.toISOString(),
           timeZone: 'Europe/Berlin',
@@ -78,7 +98,6 @@ Name: ${contactDetails.firstName} ${contactDetails.lastName}
           dateTime: endTime.toISOString(),
           timeZone: 'Europe/Berlin',
         },
-        attendees: [{ email: contactDetails.email }],
         reminders: {
           useDefault: false,
           overrides: [

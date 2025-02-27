@@ -1,10 +1,8 @@
 'use server';
-
 import { getGoogleCalendar } from '@/utils/google/google-calendar';
 import { hasOverlap } from '@/actions/booking/has-overlap';
-import { format, addMinutes, addHours } from 'date-fns';
 import { cache } from '@/utils/redis/cache';
-
+import { format, addMinutes, addHours, startOfDay, endOfDay } from 'date-fns';
 const BUSINESS_HOURS = {
   start: 9, // 9:00
   end: 17, // 17:00
@@ -15,10 +13,15 @@ const TIME_SLOT_INTERVAL = 15;
 
 // Termindauer in Minuten
 const APPOINTMENT_DURATION = 60; // 60 Minuten
+const CALENDAR_CACHE_TTL = 300; // 5 Minuten Cache
+const CALENDAR_CACHE_KEY_PREFIX = 'calendar:busy-slots';
 
 // Mindestvorlaufzeit für Buchungen in Stunden
 const MIN_BOOKING_HOURS_IN_ADVANCE = 12;
-
+// Generiere einen konstanten Cache-Schlüssel für einen Tag oder Zeitraum
+function generateCacheKey(startDate: Date, endDate: Date): string {
+  return `${CALENDAR_CACHE_KEY_PREFIX}:${format(startDate, 'yyyy-MM-dd')}:${format(endDate, 'yyyy-MM-dd')}`;
+}
 // Prüft, ob ein bestimmtes Datum ein Wochenendtag ist
 function isWeekend(date: Date): boolean {
   const day = date.getDay();
@@ -50,7 +53,11 @@ export async function getBusyTimeSlots(
     throw new Error('Start- und Endzeit müssen angegeben werden');
   }
 
-  const cacheKey = `busy-slots:${startDate.toISOString()}:${endDate.toISOString()}`;
+  const normalizedStart = startOfDay(startDate);
+  const normalizedEnd = endOfDay(endDate);
+
+  // Verwende das normalisierte Datum für den Cache-Schlüssel
+  const cacheKey = generateCacheKey(normalizedStart, normalizedEnd);
 
   return cache(
     cacheKey,
@@ -86,13 +93,23 @@ export async function getBusyTimeSlots(
 
         if (events.length > 0) {
           console.log('📋 Erste 3 Events (oder weniger):');
-          events.slice(0, 3).forEach((event, index) => {
-            console.log(`  Event ${index + 1}:`, {
-              summary: event.summary,
-              start: event.start?.dateTime || event.start?.date,
-              end: event.end?.dateTime || event.end?.date,
-            });
-          });
+          events.slice(0, 3).forEach(
+            (
+              event: {
+                summary: any;
+                start: { dateTime: any; date: any };
+                end: { dateTime: any; date: any };
+              },
+              index: number,
+            ) => {
+              console.log(`  Event ${index + 1}:`, {
+                summary: event.summary,
+                fields: 'items(start,end)',
+                start: event.start?.dateTime || event.start?.date,
+                end: event.end?.dateTime || event.end?.date,
+              });
+            },
+          );
         }
 
         // Alle möglichen Zeitslots für den Zeitraum erstellen
@@ -183,7 +200,7 @@ export async function getBusyTimeSlots(
         return [];
       }
     },
-    300,
+    CALENDAR_CACHE_TTL,
   ); // 5 Minuten Cache
 }
 
@@ -216,10 +233,7 @@ export async function checkTimeSlotAvailable(
       return false;
     }
 
-    const busySlots = await getBusyTimeSlots(
-      new Date(date.setHours(0, 0, 0, 0)),
-      new Date(date.setHours(23, 59, 59, 999)),
-    );
+    const busySlots = await getBusyTimeSlots(startOfDay(date), endOfDay(date));
 
     const slotKey = format(slotStart, "yyyy-MM-dd'T'HH:mm");
     const isAvailable = !busySlots.includes(slotKey);
@@ -262,8 +276,8 @@ export async function getAvailableTimeSlotsForDay(
 
   console.log('🔄 Hole besetzte Zeitslots...');
   const busySlots = await getBusyTimeSlots(
-    new Date(dateCopy.setHours(0, 0, 0, 0)),
-    new Date(new Date(date).setHours(23, 59, 59, 999)),
+    startOfDay(dateCopy),
+    endOfDay(dateCopy),
   );
   console.log(`✅ ${busySlots.length} besetzte Slots gefunden`);
 

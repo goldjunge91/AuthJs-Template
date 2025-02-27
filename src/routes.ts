@@ -61,6 +61,12 @@ export const publicRoutes = [
   '/booking/cancel/[session_id]',
   '/booking/success/(.*)',
   '/booking/cancel/(.*)',
+  '/booking/success/[...session_id]',
+  '/booking/cancel/[...session_id]',
+  '/booking/success', // Main route
+  '/booking/success/(.*)', // All routes under /booking/success
+  '/booking/cancel',
+  '/booking/cancel/(.*)',
   '/api/calendar/(.*)',
   '/api/stripe/:path*',
   '/api/stripe/checkout',
@@ -70,6 +76,7 @@ export const publicRoutes = [
   '/api/stripe/cancel-booking',
   '/api/calendar/create-event',
   '/api/calendar/check-availability',
+  '/api/calendar/optimized-availability',
 ];
 
 /**
@@ -114,84 +121,3 @@ export const oauthCallbackRoutes = [
   '/api/auth/callback/google',
   '/api/auth/callback/github',
 ];
-
-// /**
-//  * These routes are public and don't need authentication
-//  * @type {string[]}
-//  * */
-// export const publicRoutes = [
-//   '/',
-//   '/:path*',
-//   '/pakete',
-//   '/booking',
-//   '/booking/success',
-//   '/booking/cancel',
-//   '/booking/success/:path*',
-//   '/booking/cancel/:path*',
-//   '/new-verification',
-//   '/onboarding',
-//   '/register',
-//   '/reset-password',
-//   '/new-password',
-//   '/loginerror',
-//   '/login/magic-link',
-//   '/faq',
-//   '/kontakt',
-//   '/impressum',
-//   '/datenschutz',
-//   '/server',
-//   '/client',
-//   '/settings',
-// '/api/stripe/checkout',
-// '/api/stripe/success',
-// '/api/stripe/webhook',
-// '/api/stripe/get-booking',
-// '/api/stripe/cancel-booking',
-// '/api/calendar/create-event',
-// '/api/calendar/check-availability',
-// '/api/calendar/check-availability-batch',
-// '/api/calendar/(.*)',
-// '/api/calendar/:path*',
-// '/sign-in',
-// '/sign-out',
-// '/public/(.*)',
-// '/public/assets/packages/(.*',
-// '/api/stripe/:path*',
-//   '/api/users/anonymous', // Adjust this path to match your actual endpoint
-// ];
-// /**
-//  * These routes are used for authentication,
-//  * redirect logged-in users to /settings
-//  * @type {string[]}
-//  * */
-// export const authRoutes = [
-//   '/onboarding',
-//   '/register',
-//   '/loginerror',
-//   '/admin',
-//   '/reset-password',
-//   '/new-password',
-//   '/login/magic-link',
-//   '/sign-in',
-//   '/sign-out',
-// ];
-
-// /**
-//  * The prefix for API authentication routes
-//  * Routes that start with this prefix are used for api
-//  * authentication purposes
-//  * @type {string}
-//  * */
-// export const apiAuthPrefix = '/api/auth';
-
-// /**
-//  * Default redirect path for logged-in users
-//  * @type {string}
-//  * */
-// export const DEFAULT_LOGIN_REDIRECT = '/settings';
-
-// /**
-//  * Default Allowed Redirects from callbackUrl searchParams
-//  * @type {string}
-//  * */
-// export const ALLOWED_REDIRECTS = ['/server', '/admin', '/client', '/settings'];

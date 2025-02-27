@@ -86,13 +86,22 @@ export async function getBusyTimeSlots(
 
         if (events.length > 0) {
           console.log('📋 Erste 3 Events (oder weniger):');
-          events.slice(0, 3).forEach((event, index) => {
-            console.log(`  Event ${index + 1}:`, {
-              summary: event.summary,
-              start: event.start?.dateTime || event.start?.date,
-              end: event.end?.dateTime || event.end?.date,
-            });
-          });
+          events.slice(0, 3).forEach(
+            (
+              event: {
+                summary: any;
+                start: { dateTime: any; date: any };
+                end: { dateTime: any; date: any };
+              },
+              index: number,
+            ) => {
+              console.log(`  Event ${index + 1}:`, {
+                summary: event.summary,
+                start: event.start?.dateTime || event.start?.date,
+                end: event.end?.dateTime || event.end?.date,
+              });
+            },
+          );
         }
 
         // Alle möglichen Zeitslots für den Zeitraum erstellen
